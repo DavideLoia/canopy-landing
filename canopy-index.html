@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canopy — Renewable Portfolio Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --white:    #FFFFFF;
+  --snow:     #FAFAF8;
+  --stone:    #F2F1ED;
+  --border:   #E8E6E0;
+  --muted:    #9A9890;
+  --ink:      #1A1E1B;
+  --forest:   #0F2018;
+  --pine:     #1E4A30;
+  --sage:     #2A7A5A;
+  --mint:     #4DB884;
+  --glow:     #7DD4A8;
+  --pale:     #EBF5F0;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--white);
+  color: var(--ink);
+  overflow-x: hidden;
+}
+
+/* ── NAVBAR ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 56px;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.nav-logo {
+  display: flex; align-items: center; gap: 11px;
+  text-decoration: none;
+}
+.nav-wordmark {
+  font-family: 'Sora', sans-serif;
+  font-size: 17px;
+  font-weight: 300;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--forest);
+}
+
+.nav-links {
+  display: flex; gap: 36px; list-style: none;
+}
+.nav-links a {
+  font-size: 14px; font-weight: 400;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s;
+  letter-spacing: 0.2px;
+}
+.nav-links a:hover { color: var(--ink); }
+
+.nav-actions { display: flex; gap: 10px; align-items: center; }
+
+.btn-nav-ghost {
+  padding: 8px 18px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-nav-ghost:hover { border-color: var(--sage); color: var(--sage); }
+
+.btn-nav-primary {
+  padding: 8px 20px;
+  background: var(--forest);
+  border: none;
+  border-radius: 8px;
+  font-family: 'Sora', sans-serif;
+  font-size: 13px; font-weight: 600;
+  color: var(--white);
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+.btn-nav-primary:hover { background: var(--pine); transform: translateY(-1px); }
+
+/* ── HERO ── */
+.hero {
+  padding: 96px 56px 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+  min-height: 88vh;
+}
+
+.hero-left {}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--pale);
+  border: 1px solid rgba(42,122,90,0.2);
+  border-radius: 30px;
+  padding: 6px 14px;
+  margin-bottom: 36px;
+}
+.badge-dot {
+  width: 6px; height: 6px;
+  background: var(--sage);
+  border-radius: 50%;
+}
+.hero-badge span {
+  font-family: 'Sora', sans-serif;
+  font-size: 11px; font-weight: 600;
+  color: var(--sage);
+  letter-spacing: 0.5px;
+}
+
+.hero h1 {
+  font-family: 'Sora', sans-serif;
+  font-size: clamp(38px, 4.5vw, 58px);
+  font-weight: 800;
+  color: var(--forest);
+  line-height: 1.08;
+  letter-spacing: -2px;
+  margin-bottom: 24px;
+}
+.hero h1 em {
+  font-style: normal;
+  color: var(--sage);
+}
+
+.hero-sub {
+  font-size: 18px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-weight: 300;
+  margin-bottom: 44px;
+  max-width: 440px;
+}
+
+.hero-actions {
+  display: flex; gap: 12px; align-items: center;
+  margin-bottom: 56px;
+}
+
+.btn-hero {
+  padding: 14px 32px;
+  background: var(--forest);
+  border: none; border-radius: 10px;
+  font-family: 'Sora', sans-serif;
+  font-size: 14px; font-weight: 700;
+  color: var(--white);
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: all 0.25s;
+}
+.btn-hero:hover { background: var(--pine); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,32,24,0.2); }
+
+.btn-hero-soft {
+  padding: 14px 24px;
+  background: var(--stone);
+  border: none; border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-hero-soft:hover { background: var(--border); }
+
+.hero-trust {
+  display: flex; align-items: center; gap: 16px;
+}
+.trust-avatars {
+  display: flex;
+}
+.trust-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid white;
+  margin-left: -8px;
+  font-family: 'Sora', sans-serif;
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+}
+.trust-avatar:first-child { margin-left: 0; }
+.trust-text {
+  font-size: 13px; color: var(--muted);
+  font-weight: 300;
+}
+.trust-text strong { color: var(--ink); font-weight: 600; }
+
+/* Hero right — App Preview */
+.hero-right {}
+
+.app-preview {
+  background: var(--snow);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.04),
+    0 8px 32px rgba(0,0,0,0.07),
+    0 32px 64px rgba(0,0,0,0.06);
+}
+
+.preview-topbar {
+  background: var(--forest);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.tb-dots { display:flex; gap:5px; }
+.tb-dot { width:9px; height:9px; border-radius:50%; }
+.tb-url {
+  flex: 1;
+  background: rgba(255,255,255,0.07);
+  border-radius: 5px;
+  height: 22px;
+  display: flex; align-items: center; padding: 0 10px;
+}
+.tb-url span {
+  font-size: 10px; color: rgba(255,255,255,0.3);
+  font-weight: 400; letter-spacing: 0.3px;
+}
+
+.preview-sidebar {
+  display: flex;
+}
+.sidebar {
+  width: 160px; flex-shrink: 0;
+  background: #162A1F;
+  padding: 16px 12px;
+  min-height: 360px;
+}
+.sidebar-logo {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 24px; padding: 0 4px;
+}
+.sidebar-logo-text {
+  font-family: 'Sora', sans-serif;
+  font-size: 12px; font-weight: 300;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+}
+.sidebar-item {
+  padding: 8px 10px;
+  border-radius: 7px;
+  margin-bottom: 2px;
+  font-size: 11px; font-weight: 500;
+  color: rgba(255,255,255,0.4);
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.sidebar-item.active {
+  background: rgba(42,122,90,0.25);
+  color: var(--glow);
+}
+.sidebar-item:hover:not(.active) {
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.6);
+}
+.sidebar-section {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: rgba(255,255,255,0.2);
+  padding: 12px 10px 6px;
+}
+
+.preview-main {
+  flex: 1;
+  padding: 16px;
+  background: var(--snow);
+}
+.preview-page-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 13px; font-weight: 700;
+  color: var(--forest);
+  margin-bottom: 12px;
+  letter-spacing: -0.2px;
+}
+.kpi-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-bottom: 12px;
+}
+.kpi-box {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.kpi-label {
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.kpi-val {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px; font-weight: 800;
+  color: var(--forest);
+  letter-spacing: -0.3px;
+}
+.kpi-sub {
+  font-size: 9px; color: var(--sage);
+  font-weight: 500; margin-top: 2px;
+}
+
+.preview-table {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.table-header {
+  display: grid; grid-template-columns: 2fr 1fr 1fr;
+  padding: 8px 12px;
+  background: var(--stone);
+  border-bottom: 1px solid var(--border);
+}
+.table-header span {
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--muted);
+}
+.table-row {
+  display: grid; grid-template-columns: 2fr 1fr 1fr;
+  padding: 9px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  align-items: center;
+}
+.table-row:last-child { border-bottom: none; }
+.tr-name {
+  font-size: 11px; font-weight: 500;
+  color: var(--forest);
+}
+.tr-amount {
+  font-family: 'Sora', sans-serif;
+  font-size: 11px; font-weight: 700;
+  color: var(--forest);
+}
+.tr-status {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 9px; font-weight: 700;
+  width: fit-content;
+}
+.status-ok { background: #E8F5EE; color: var(--sage); }
+.status-pending { background: #FEF3E2; color: #D97706; }
+.status-new { background: var(--pale); color: var(--sage); }
+
+/* ── LOGOS BAR ── */
+.logos-bar {
+  padding: 32px 56px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  justify-content: center; gap: 16px;
+  background: var(--snow);
+}
+.logos-label {
+  font-size: 12px; color: var(--muted);
+  font-weight: 400; letter-spacing: 0.3px;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+.logo-pill {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-family: 'Sora', sans-serif;
+  font-size: 12px; font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+/* ── FEATURES ── */
+.features {
+  padding: 100px 56px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-family: 'Sora', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 16px;
+}
+.section-title {
+  font-family: 'Sora', sans-serif;
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 800;
+  color: var(--forest);
+  line-height: 1.12;
+  letter-spacing: -1px;
+  margin-bottom: 16px;
+}
+.section-sub {
+  font-size: 17px; color: var(--muted);
+  font-weight: 300; line-height: 1.65;
+  max-width: 520px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-top: 56px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--border);
+}
+
+.feat-card {
+  background: white;
+  padding: 36px 32px;
+  transition: background 0.2s;
+}
+.feat-card:hover { background: var(--snow); }
+
+.feat-icon {
+  width: 44px; height: 44px;
+  background: var(--pale);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+.feat-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 16px; font-weight: 700;
+  color: var(--forest);
+  margin-bottom: 10px;
+  letter-spacing: -0.3px;
+}
+.feat-desc {
+  font-size: 14px; color: var(--muted);
+  line-height: 1.65; font-weight: 300;
+}
+
+/* ── HOW IT WORKS ── */
+.how-section {
+  padding: 100px 56px;
+  background: var(--forest);
+  position: relative;
+  overflow: hidden;
+}
+.how-section::before {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 50% 80% at 80% 50%, rgba(42,122,90,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 20% 20%, rgba(77,184,132,0.06) 0%, transparent 50%);
+}
+.how-inner {
+  max-width: 1200px; margin: 0 auto;
+  position: relative; z-index: 2;
+}
+.how-section .section-label { color: var(--glow); }
+.how-section .section-title { color: white; }
+.how-section .section-sub { color: rgba(255,255,255,0.4); }
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  margin-top: 56px;
+}
+.step {
+  position: relative;
+}
+.step-num {
+  font-family: 'Sora', sans-serif;
+  font-size: 48px; font-weight: 800;
+  color: rgba(255,255,255,0.05);
+  line-height: 1;
+  margin-bottom: 16px;
+  letter-spacing: -2px;
+}
+.step-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 16px; font-weight: 700;
+  color: white;
+  margin-bottom: 10px;
+  letter-spacing: -0.2px;
+}
+.step-desc {
+  font-size: 14px;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.65;
+  font-weight: 300;
+}
+.step-line {
+  position: absolute;
+  top: 28px; right: -16px;
+  width: 32px; height: 1px;
+  background: rgba(77,184,132,0.2);
+}
+.step:last-child .step-line { display: none; }
+
+/* ── PRICING ── */
+.pricing {
+  padding: 100px 56px;
+  max-width: 1200px; margin: 0 auto;
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 56px;
+}
+
+.pricing-card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 24px;
+  background: white;
+  transition: all 0.25s;
+  position: relative;
+}
+.pricing-card:hover {
+  border-color: rgba(42,122,90,0.3);
+  box-shadow: 0 8px 32px rgba(42,122,90,0.08);
+  transform: translateY(-2px);
+}
+.pricing-card.featured {
+  border-color: var(--sage);
+  background: var(--forest);
+  box-shadow: 0 16px 48px rgba(15,32,24,0.2);
+}
+.pricing-card.featured:hover { transform: translateY(-4px); }
+
+.popular-tag {
+  position: absolute;
+  top: -12px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--sage);
+  color: white;
+  font-family: 'Sora', sans-serif;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 4px 14px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.tier-badge {
+  font-family: 'Sora', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 16px;
+}
+.pricing-card.featured .tier-badge { color: var(--glow); }
+
+.price-big {
+  font-family: 'Sora', sans-serif;
+  font-size: 44px; font-weight: 800;
+  color: var(--forest);
+  letter-spacing: -2px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.pricing-card.featured .price-big { color: white; }
+
+.price-meta {
+  font-size: 13px; color: var(--muted);
+  font-weight: 300; margin-bottom: 8px;
+}
+.pricing-card.featured .price-meta { color: rgba(255,255,255,0.35); }
+
+.price-desc {
+  font-size: 12px; color: var(--muted);
+  margin-bottom: 24px; font-weight: 400;
+  min-height: 36px;
+}
+.pricing-card.featured .price-desc { color: rgba(255,255,255,0.4); }
+
+.price-divider {
+  height: 1px;
+  background: var(--border);
+  margin-bottom: 24px;
+}
+.pricing-card.featured .price-divider { background: rgba(255,255,255,0.08); }
+
+.price-features {
+  list-style: none;
+  display: flex; flex-direction: column;
+  gap: 11px; margin-bottom: 32px;
+}
+.price-features li {
+  font-size: 13px; color: var(--ink);
+  display: flex; align-items: flex-start; gap: 10px;
+  line-height: 1.4; font-weight: 400;
+}
+.pricing-card.featured .price-features li { color: rgba(255,255,255,0.7); }
+.price-features li.locked {
+  color: var(--muted); opacity: 0.5;
+}
+.check-icon { color: var(--sage); font-size: 13px; flex-shrink: 0; }
+.pricing-card.featured .check-icon { color: var(--glow); }
+.lock-icon { color: var(--border); font-size: 13px; flex-shrink: 0; }
+
+.price-cta {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  font-family: 'Sora', sans-serif;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+.cta-outline {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--ink);
+}
+.cta-outline:hover { border-color: var(--sage); color: var(--sage); }
+.cta-filled {
+  background: var(--mint);
+  border: none;
+  color: var(--forest);
+}
+.cta-filled:hover { background: var(--glow); box-shadow: 0 6px 20px rgba(77,184,132,0.3); }
+
+/* Payment row */
+.pay-row {
+  display: flex; align-items: center;
+  justify-content: center; gap: 16px;
+  margin-top: 40px; flex-wrap: wrap;
+}
+.pay-label {
+  font-size: 13px; color: var(--muted);
+}
+.pay-badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 16px;
+  background: var(--snow);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px; font-weight: 600;
+  color: var(--muted);
+}
+.pay-badge.pp { color: #003087; border-color: rgba(0,48,135,0.15); background: #F0F4FF; }
+.pay-badge.sp { color: #CC0022; border-color: rgba(204,0,34,0.15); background: #FFF0F2; }
+
+/* ── FAQ ── */
+.faq-section {
+  padding: 80px 56px;
+  background: var(--snow);
+  border-top: 1px solid var(--border);
+}
+.faq-inner {
+  max-width: 760px; margin: 0 auto;
+}
+.faq-item {
+  border-bottom: 1px solid var(--border);
+  padding: 24px 0;
+}
+.faq-q {
+  font-family: 'Sora', sans-serif;
+  font-size: 16px; font-weight: 600;
+  color: var(--forest);
+  margin-bottom: 12px;
+  letter-spacing: -0.2px;
+}
+.faq-a {
+  font-size: 14px; color: var(--muted);
+  line-height: 1.7; font-weight: 300;
+}
+
+/* ── CTA BOTTOM ── */
+.cta-bottom {
+  padding: 100px 56px;
+  text-align: center;
+  background: var(--forest);
+  position: relative; overflow: hidden;
+}
+.cta-bottom::before {
+  content:'';
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse 60% 70% at 50% 100%, rgba(42,122,90,0.2) 0%, transparent 70%);
+}
+.cta-bottom h2 {
+  font-family: 'Sora', sans-serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 800;
+  color: white;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  margin-bottom: 20px;
+  position: relative; z-index: 2;
+}
+.cta-bottom h2 em { font-style:normal; color: var(--glow); }
+.cta-bottom p {
+  font-size: 18px; color: rgba(255,255,255,0.4);
+  font-weight: 300; margin-bottom: 40px;
+  position: relative; z-index: 2;
+}
+.cta-bottom-btns {
+  display: flex; gap: 12px;
+  justify-content: center;
+  position: relative; z-index: 2;
+}
+.btn-cta-white {
+  padding: 14px 36px;
+  background: white;
+  border: none; border-radius: 10px;
+  font-family: 'Sora', sans-serif;
+  font-size: 14px; font-weight: 700;
+  color: var(--forest);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-cta-white:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.btn-cta-ghost {
+  padding: 14px 28px;
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-cta-ghost:hover { border-color: var(--glow); color: var(--glow); }
+
+/* ── FOOTER ── */
+footer {
+  background: #0A1610;
+  padding: 48px 56px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 32px;
+  align-items: start;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.footer-brand {}
+.footer-logo-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px;
+}
+.footer-wordmark {
+  font-family: 'Sora', sans-serif;
+  font-size: 15px; font-weight: 300;
+  letter-spacing: 4px; text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+}
+.footer-tagline {
+  font-size: 13px; color: rgba(255,255,255,0.25);
+  font-weight: 300;
+}
+.footer-links {
+  display: flex; gap: 32px;
+}
+.footer-col h4 {
+  font-family: 'Sora', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 14px;
+}
+.footer-col a {
+  display: block;
+  font-size: 13px; color: rgba(255,255,255,0.4);
+  text-decoration: none;
+  margin-bottom: 8px;
+  transition: color 0.2s;
+  font-weight: 300;
+}
+.footer-col a:hover { color: var(--glow); }
+.footer-bottom {
+  grid-column: 1/-1;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  display: flex; justify-content: space-between;
+  align-items: center;
+}
+.footer-copy {
+  font-size: 12px; color: rgba(255,255,255,0.2);
+  font-weight: 300;
+}
+.footer-legal {
+  display: flex; gap: 24px;
+}
+.footer-legal a {
+  font-size: 12px; color: rgba(255,255,255,0.2);
+  text-decoration: none;
+}
+
+/* SVG Logo component */
+.canopy-mark {
+  flex-shrink: 0;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:960px){
+  nav { padding: 0 20px; }
+  .nav-links { display:none; }
+  .hero { grid-template-columns:1fr; padding:60px 20px; min-height:auto; gap:40px; }
+  .hero-right { display:none; }
+  .features { padding: 60px 20px; }
+  .features-grid { grid-template-columns: 1fr; }
+  .how-section { padding: 60px 20px; }
+  .steps { grid-template-columns: 1fr 1fr; }
+  .pricing { padding: 60px 20px; }
+  .pricing-grid { grid-template-columns: 1fr 1fr; }
+  .faq-section { padding: 60px 20px; }
+  .cta-bottom { padding: 60px 20px; }
+  footer { padding: 40px 20px; grid-template-columns:1fr; }
+  .footer-links { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav>
+  <a class="nav-logo" href="#">
+    <svg class="canopy-mark" width="40" height="28" viewBox="0 0 64 44" fill="none">
+      <path d="M4 40 Q32 4 60 40" stroke="#2A7A5A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M13 40 Q32 13 51 40" stroke="rgba(42,122,90,0.28)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <line x1="32" y1="40" x2="32" y2="43" stroke="#2A7A5A" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="32" cy="5" r="2.5" fill="#2A7A5A"/>
+    </svg>
+    <span class="nav-wordmark">Canopy</span>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#">Product</a></li>
+    <li><a href="#">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#">About</a></li>
+  </ul>
+
+  <div class="nav-actions">
+    <button class="btn-nav-ghost">Log in</button>
+    <button class="btn-nav-primary" onclick="window.location.href='signup.html'">Get started free</button>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section>
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-badge">
+        <div class="badge-dot"></div>
+        <span>Renewable Portfolio Intelligence</span>
+      </div>
+
+      <h1>Your renewable<br>assets,<br><em>under control.</em></h1>
+
+      <p class="hero-sub">Canopy is the all-in-one management platform for renewable energy startups. SPV registry, treasury, land payments and procurement — one clear view.</p>
+
+      <div class="hero-actions">
+        <button class="btn-hero" onclick="window.location.href='signup.html'">Start free — no card needed</button>
+        <button class="btn-hero-soft">
+          <span>▶</span> Watch 2-min demo
+        </button>
+      </div>
+
+      <div class="hero-trust">
+        <div class="trust-avatars">
+          <div class="trust-avatar" style="background:#2A7A5A;">AL</div>
+          <div class="trust-avatar" style="background:#1E4A30;">MR</div>
+          <div class="trust-avatar" style="background:#0F2018;">GF</div>
+          <div class="trust-avatar" style="background:#3A8A6A;">SP</div>
+        </div>
+        <span class="trust-text">Trusted by <strong>40+ teams</strong> across Europe</span>
+      </div>
+    </div>
+
+    <!-- App Preview -->
+    <div class="hero-right">
+      <div class="app-preview">
+        <div class="preview-topbar">
+          <div class="tb-dots">
+            <div class="tb-dot" style="background:#ff5f57"></div>
+            <div class="tb-dot" style="background:#ffbd2e"></div>
+            <div class="tb-dot" style="background:#28c840"></div>
+          </div>
+          <div class="tb-url"><span>app.canopy.io/dashboard</span></div>
+        </div>
+
+        <div class="preview-sidebar">
+          <div class="sidebar">
+            <div class="sidebar-logo">
+              <svg width="20" height="14" viewBox="0 0 64 44" fill="none">
+                <path d="M4 40 Q32 4 60 40" stroke="rgba(125,212,168,0.6)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <circle cx="32" cy="5" r="2.5" fill="rgba(125,212,168,0.6)"/>
+              </svg>
+              <span class="sidebar-logo-text">Canopy</span>
+            </div>
+
+            <div class="sidebar-section">Overview</div>
+            <div class="sidebar-item active">📊 Dashboard</div>
+            <div class="sidebar-item">💶 Payments</div>
+
+            <div class="sidebar-section">Admin</div>
+            <div class="sidebar-item">🏢 SPV Registry</div>
+            <div class="sidebar-item">🤝 Vendors</div>
+            <div class="sidebar-item">⚖️ Notaries</div>
+            <div class="sidebar-item">📦 Orders</div>
+
+            <div class="sidebar-section">Projects</div>
+            <div class="sidebar-item">📁 Pipeline</div>
+          </div>
+
+          <div class="preview-main">
+            <div class="preview-page-title">Dashboard</div>
+            <div class="kpi-row">
+              <div class="kpi-box">
+                <div class="kpi-label">Portfolio Value</div>
+                <div class="kpi-val">€ —</div>
+                <div class="kpi-sub">+8.2% this month</div>
+              </div>
+              <div class="kpi-box">
+                <div class="kpi-label">Outstanding</div>
+                <div class="kpi-val">€ —</div>
+                <div class="kpi-sub">3 due soon</div>
+              </div>
+              <div class="kpi-box">
+                <div class="kpi-label">Active SPV</div>
+                <div class="kpi-val">—</div>
+                <div class="kpi-sub">All tracked</div>
+              </div>
+            </div>
+            <div class="preview-table">
+              <div class="table-header">
+                <span>Land Owner</span>
+                <span>Amount</span>
+                <span>Status</span>
+              </div>
+              <div class="table-row">
+                <div class="tr-name">Rossi Agricultural</div>
+                <div class="tr-amount">€ ——</div>
+                <div class="tr-status status-ok">Paid</div>
+              </div>
+              <div class="table-row">
+                <div class="tr-name">Bianchi Estates</div>
+                <div class="tr-amount">€ ——</div>
+                <div class="tr-status status-pending">Pending</div>
+              </div>
+              <div class="table-row">
+                <div class="tr-name">Conti Land Co.</div>
+                <div class="tr-amount">€ ——</div>
+                <div class="tr-status status-new">New</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── LOGOS BAR ── -->
+<div class="logos-bar">
+  <span class="logos-label">Works alongside your existing tools</span>
+  <div class="logo-pill">Excel</div>
+  <div class="logo-pill">Google Sheets</div>
+  <div class="logo-pill">Supabase</div>
+  <div class="logo-pill">PayPal</div>
+  <div class="logo-pill">Satispay</div>
+  <div class="logo-pill">DocuSign</div>
+</div>
+
+<!-- ── FEATURES ── -->
+<section class="features">
+  <div class="section-label">What Canopy does</div>
+  <div class="section-title">Everything your portfolio<br>needs. Nothing it doesn't.</div>
+  <p class="section-sub">Built for renewable energy developers who have outgrown spreadsheets but don't need a €500/month enterprise suite.</p>
+
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">Live Dashboard</div>
+      <div class="feat-desc">Portfolio value, due payments and key KPIs — all visible at a glance, always current.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🏢</div>
+      <div class="feat-title">SPV Registry</div>
+      <div class="feat-desc">Track every Special Purpose Vehicle: status, documents, vendors, notaries and deadlines.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">💶</div>
+      <div class="feat-title">Treasury & Payments</div>
+      <div class="feat-desc">Manage payments by project and land owner. Due dates, status and full history in one click.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📁</div>
+      <div class="feat-title">Project Pipeline</div>
+      <div class="feat-desc">Full pipeline per project: permitting, construction, commissioning. Everything under control.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📦</div>
+      <div class="feat-title">Procurement</div>
+      <div class="feat-desc">Purchase orders, vendors, notaries. Cost categories, time competence and automatic Excel export.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🔒</div>
+      <div class="feat-title">Roles & Multi-user</div>
+      <div class="feat-desc">Admin, Editor, Viewer. Each team member sees only what they need. Private database per account.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="how-section">
+  <div class="how-inner">
+    <div class="section-label">How it works</div>
+    <div class="section-title" style="color:white;">Up and running<br>in 10 minutes.</div>
+    <p class="section-sub">No onboarding call. No setup fees. No IT department required.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Choose your plan</div>
+        <div class="step-desc">Start free or pick the tier that matches your current portfolio size. Upgrade anytime.</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">Create your account</div>
+        <div class="step-desc">Email and password. Your database is private and isolated from all other accounts.</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Enter your data</div>
+        <div class="step-desc">Add your SPVs, projects, vendors and land owners. Import from Excel in one click.</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-title">Invite your team</div>
+        <div class="step-desc">Add colleagues with the right role. Everyone sees what they need, nothing they don't.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ── -->
+<section class="pricing" id="pricing">
+  <div class="section-label">Pricing</div>
+  <div class="section-title">Simple, honest pricing.</div>
+  <p class="section-sub">Start free. Scale when you're ready. Cancel anytime with no questions asked.</p>
+
+  <div class="pricing-grid">
+
+    <!-- Starter -->
+    <div class="pricing-card">
+      <div class="tier-badge">Starter</div>
+      <div class="price-big">€0</div>
+      <div class="price-meta">forever free · 1 user</div>
+      <div class="price-desc">Perfect to try Canopy and manage your first land payments.</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li><span class="check-icon">✓</span> Live Dashboard</li>
+        <li><span class="check-icon">✓</span> Land Owner Payments</li>
+        <li class="locked"><span class="lock-icon">—</span> SPV Registry</li>
+        <li class="locked"><span class="lock-icon">—</span> Vendors & Notaries</li>
+        <li class="locked"><span class="lock-icon">—</span> Purchase Orders</li>
+        <li class="locked"><span class="lock-icon">—</span> Project Pipeline</li>
+      </ul>
+      <button class="price-cta cta-outline" onclick="window.location.href='signup.html?plan=starter'">Start for free</button>
+    </div>
+
+    <!-- Growth — featured -->
+    <div class="pricing-card featured">
+      <div class="popular-tag">Most popular</div>
+      <div class="tier-badge">Growth</div>
+      <div class="price-big" style="color:white;">€20</div>
+      <div class="price-meta">per user / month</div>
+      <div class="price-desc">Full admin area, treasury and procurement for growing teams.</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li><span class="check-icon">✓</span> Everything in Starter</li>
+        <li><span class="check-icon">✓</span> <strong style="color:rgba(255,255,255,0.9)">SPV Registry</strong></li>
+        <li><span class="check-icon">✓</span> <strong style="color:rgba(255,255,255,0.9)">Vendors & Notaries</strong></li>
+        <li><span class="check-icon">✓</span> <strong style="color:rgba(255,255,255,0.9)">Purchase Orders</strong></li>
+        <li><span class="check-icon">✓</span> Project Payments</li>
+        <li class="locked"><span class="lock-icon" style="color:rgba(255,255,255,0.15);">—</span> <span style="color:rgba(255,255,255,0.25)">Project Pipeline</span></li>
+      </ul>
+      <button class="price-cta cta-filled" onclick="window.location.href='signup.html?plan=growth'">Get Growth →</button>
+    </div>
+
+    <!-- Pro -->
+    <div class="pricing-card">
+      <div class="tier-badge">Pro</div>
+      <div class="price-big">€40</div>
+      <div class="price-meta">per user / month</div>
+      <div class="price-desc">Growth plus full project pipeline for serious developers.</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li><span class="check-icon">✓</span> Everything in Growth</li>
+        <li><span class="check-icon">✓</span> <strong>Project Pipeline</strong></li>
+        <li><span class="check-icon">✓</span> Permitting tracking</li>
+        <li><span class="check-icon">✓</span> Construction status</li>
+        <li><span class="check-icon">✓</span> Advanced Excel export</li>
+        <li><span class="check-icon">✓</span> PowerPoint reports</li>
+      </ul>
+      <button class="price-cta cta-outline" onclick="window.location.href='signup.html?plan=pro'">Get Pro →</button>
+    </div>
+
+    <!-- Enterprise -->
+    <div class="pricing-card">
+      <div class="tier-badge">Enterprise</div>
+      <div class="price-big">€60</div>
+      <div class="price-meta">per user / month</div>
+      <div class="price-desc">Full access to every current and future feature. For scale.</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li><span class="check-icon">✓</span> Everything in Pro</li>
+        <li><span class="check-icon">✓</span> All future features</li>
+        <li><span class="check-icon">✓</span> API access</li>
+        <li><span class="check-icon">✓</span> Dedicated onboarding</li>
+        <li><span class="check-icon">✓</span> Guaranteed SLA</li>
+        <li><span class="check-icon">✓</span> Priority support</li>
+      </ul>
+      <button class="price-cta cta-outline" onclick="window.location.href='signup.html?plan=enterprise'">Get Enterprise →</button>
+    </div>
+
+  </div>
+
+  <!-- Payment methods -->
+  <div class="pay-row">
+    <span class="pay-label">Secure payment via</span>
+    <div class="pay-badge pp">
+      <span>PayPal</span>
+    </div>
+    <div class="pay-badge sp">
+      <span>Satispay</span>
+    </div>
+    <div class="pay-badge">
+      <span>💳 Credit card</span>
+    </div>
+    <span class="pay-label">· SSL encrypted · GDPR compliant</span>
+  </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section class="faq-section">
+  <div class="faq-inner">
+    <div class="section-label" style="text-align:center; margin-bottom:40px;">Frequently asked</div>
+    <div class="faq-item">
+      <div class="faq-q">Is my data private and separated from other users?</div>
+      <div class="faq-a">Yes. Every Canopy account has its own isolated database. Your data is never shared with or visible to other accounts, teams or companies using the platform.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Can I upgrade or downgrade my plan at any time?</div>
+      <div class="faq-a">Absolutely. You can change your plan at any moment from your account settings. Upgrades are effective immediately. Downgrades take effect at the next billing cycle.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How many users can I add to my account?</div>
+      <div class="faq-a">All paid plans are per-user. You pay for each active user you invite. You can mix roles (Admin, Editor, Viewer) across your team at no extra cost per role.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Do you offer a trial of paid plans?</div>
+      <div class="faq-a">The Starter plan is free forever and lets you explore the core platform. If you need a trial of a paid plan, contact us and we'll set one up for your team.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What languages and countries does Canopy support?</div>
+      <div class="faq-a">Canopy is available in Italian and English. It is designed for renewable energy developers operating in Italy and across Europe, with global expansion planned.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA BOTTOM ── -->
+<section class="cta-bottom">
+  <h2>Ready to get<br><em>full visibility?</em></h2>
+  <p>Start free. No credit card. No sales call.</p>
+  <div class="cta-bottom-btns">
+    <button class="btn-cta-white" onclick="window.location.href='signup.html'">Create your free account →</button>
+    <button class="btn-cta-ghost">See all features</button>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-brand">
+    <div class="footer-logo-row">
+      <svg width="32" height="22" viewBox="0 0 64 44" fill="none">
+        <path d="M4 40 Q32 4 60 40" stroke="rgba(125,212,168,0.5)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M13 40 Q32 13 51 40" stroke="rgba(125,212,168,0.18)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <line x1="32" y1="40" x2="32" y2="43" stroke="rgba(125,212,168,0.5)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="32" cy="5" r="2.5" fill="rgba(125,212,168,0.5)"/>
+      </svg>
+      <span class="footer-wordmark">Canopy</span>
+    </div>
+    <div class="footer-tagline">Renewable Portfolio Intelligence</div>
+  </div>
+
+  <div class="footer-links">
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#">Features</a>
+      <a href="#">Pricing</a>
+      <a href="#">Changelog</a>
+      <a href="#">Roadmap</a>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="#">About</a>
+      <a href="#">Blog</a>
+      <a href="#">Careers</a>
+      <a href="#">Contact</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">GDPR</a>
+      <a href="#">Security</a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 Canopy · All rights reserved</div>
+    <div class="footer-legal">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Cookie Policy</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
