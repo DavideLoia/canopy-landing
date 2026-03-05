@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canopy · Admin Intelligence</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@200;300;400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest: #0F1E14;
+    --pine: #2A7A5A;
+    --sage: #5ECFA0;
+    --glow: #00E896;
+    --stone: #F4F3EF;
+    --muted: #8A9E94;
+    --card: #162218;
+    --border: rgba(94,207,160,0.12);
+    --danger: #FF6B6B;
+    --warn: #FFB74D;
+    --pro: #A78BFA;
+    --blue: #60A5FA;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--forest);
+    color: var(--stone);
+    font-family: 'Sora', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 60% 40% at 80% 10%, rgba(42,122,90,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 10% 80%, rgba(0,232,150,0.08) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; }
+
+  /* ── NAV ── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 40px;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,30,20,0.85);
+  }
+
+  .nav-logo {
+    font-size: 13px;
+    font-weight: 300;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--stone);
+  }
+
+  .nav-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(0,232,150,0.08);
+    border: 1px solid rgba(0,232,150,0.2);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--glow);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .nav-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--glow);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+  }
+
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+
+  .nav-user {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .btn-logout {
+    padding: 7px 16px;
+    background: rgba(255,107,107,0.1);
+    border: 1px solid rgba(255,107,107,0.2);
+    border-radius: 8px;
+    color: var(--danger);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Sora', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-logout:hover { background: rgba(255,107,107,0.2); }
+
+  /* ── HEADER ── */
+  .header {
+    padding: 40px 40px 24px;
+  }
+
+  .header-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--sage);
+    margin-bottom: 8px;
+  }
+
+  .header-title {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--stone);
+    letter-spacing: -1px;
+    margin-bottom: 4px;
+  }
+
+  .header-sub {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  /* ── STATS GRID ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    padding: 0 40px 32px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    transition: border-color 0.2s;
+  }
+  .stat-card:hover { border-color: rgba(94,207,160,0.25); }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 40px 20px;
+  }
+
+  .search-wrap {
+    flex: 1;
+    position: relative;
+  }
+
+  .search-wrap input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--stone);
+    font-size: 13px;
+    font-family: 'Sora', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color: rgba(94,207,160,0.4); }
+  .search-wrap input::placeholder { color: var(--muted); }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .filter-btn {
+    padding: 10px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-size: 12px;
+    font-family: 'Sora', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover, .filter-btn.active { border-color: var(--sage); color: var(--sage); }
+
+  .btn-refresh {
+    padding: 10px 16px;
+    background: rgba(94,207,160,0.1);
+    border: 1px solid rgba(94,207,160,0.2);
+    border-radius: 10px;
+    color: var(--sage);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Sora', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-refresh:hover { background: rgba(94,207,160,0.2); }
+
+  /* ── TABLE ── */
+  .table-wrap {
+    margin: 0 40px 40px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead tr {
+    background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 12px 16px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(94,207,160,0.06);
+    transition: background 0.15s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(94,207,160,0.04); }
+
+  td {
+    padding: 14px 16px;
+    font-size: 12px;
+    vertical-align: middle;
+  }
+
+  .user-email {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--stone);
+    margin-bottom: 2px;
+  }
+
+  .user-name {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  .user-company {
+    font-size: 10px;
+    color: var(--sage);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .plan-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    font-family: 'Sora', sans-serif;
+    transition: opacity 0.2s;
+  }
+  .plan-badge:hover { opacity: 0.8; }
+
+  .plan-starter   { background: rgba(138,158,148,0.15); color: var(--muted); }
+  .plan-growth    { background: rgba(96,165,250,0.15);  color: var(--blue); }
+  .plan-pro       { background: rgba(167,139,250,0.15); color: var(--pro); }
+  .plan-enterprise{ background: rgba(0,232,150,0.15);   color: var(--glow); }
+
+  .org-tag {
+    font-size: 11px;
+    color: var(--stone);
+    font-weight: 400;
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .time-tag {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .time-tag.online {
+    color: var(--glow);
+    font-weight: 600;
+  }
+
+  .activity-tag {
+    font-size: 11px;
+    color: var(--muted);
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .duration-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .duration-track {
+    width: 60px;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .duration-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--pine), var(--sage));
+    border-radius: 2px;
+  }
+
+  /* Plan dropdown */
+  .plan-select {
+    padding: 4px 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--stone);
+    font-size: 11px;
+    font-family: 'Sora', sans-serif;
+    cursor: pointer;
+    outline: none;
+  }
+  .plan-select option { background: var(--forest); }
+
+  /* Empty / loading */
+  .empty {
+    text-align: center;
+    padding: 60px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--sage);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Login screen */
+  #login-screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--forest);
+    z-index: 999;
+  }
+
+  .login-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    width: 380px;
+    text-align: center;
+  }
+
+  .login-logo {
+    font-size: 13px;
+    font-weight: 300;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--stone);
+    margin-bottom: 8px;
+  }
+
+  .login-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 32px;
+    letter-spacing: 1px;
+  }
+
+  .login-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--stone);
+    font-size: 13px;
+    font-family: 'Sora', sans-serif;
+    outline: none;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .login-input:focus { border-color: var(--sage); }
+
+  .login-btn {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, var(--pine), #1a5e3e);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Sora', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    margin-top: 4px;
+  }
+  .login-btn:hover { opacity: 0.9; }
+
+  .login-error {
+    font-size: 12px;
+    color: var(--danger);
+    margin-top: 10px;
+    min-height: 18px;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--card);
+    border: 1px solid var(--sage);
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 13px;
+    color: var(--sage);
+    font-weight: 600;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* Access denied */
+  .access-denied {
+    text-align: center;
+    padding: 80px 40px;
+    color: var(--danger);
+  }
+  .access-denied h2 { font-size: 24px; margin-bottom: 8px; }
+  .access-denied p { color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">CANOPY</div>
+    <div class="login-sub">Admin Intelligence · Accesso riservato</div>
+    <input class="login-input" type="email" id="login-email" placeholder="Email" />
+    <input class="login-input" type="password" id="login-password" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="login-btn" onclick="doLogin()">Accedi →</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div class="wrap" id="main-app" style="display:none">
+  <nav>
+    <div class="nav-logo">CANOPY</div>
+    <div class="nav-badge">Admin Intelligence</div>
+    <div class="nav-right">
+      <span class="nav-user" id="nav-user-email"></span>
+      <button class="btn-logout" onclick="doLogout()">Esci</button>
+    </div>
+  </nav>
+
+  <div class="header">
+    <div class="header-label">Pannello di controllo</div>
+    <div class="header-title">Utenti &amp; Organizzazioni</div>
+    <div class="header-sub">Gestione globale degli iscritti alla piattaforma Canopy</div>
+  </div>
+
+  <div class="stats-grid" id="stats-grid">
+    <!-- filled by JS -->
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input id="search-input" type="text" placeholder="Cerca per email, nome, azienda, organizzazione, IP..." oninput="renderTable()" />
+    </div>
+    <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">Tutti</button>
+    <button class="filter-btn" id="filter-starter" onclick="setFilter('starter')">Starter</button>
+    <button class="filter-btn" id="filter-growth" onclick="setFilter('growth')">Growth</button>
+    <button class="filter-btn" id="filter-pro" onclick="setFilter('pro')">Pro</button>
+    <button class="filter-btn" id="filter-enterprise" onclick="setFilter('enterprise')">Enterprise</button>
+    <button class="btn-refresh" onclick="loadData()">↻ Aggiorna</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Utente</th>
+          <th>Azienda</th>
+          <th>Organizzazione</th>
+          <th>Piano</th>
+          <th>Ultimo accesso</th>
+          <th>Durata sessione</th>
+          <th>Ultima attività</th>
+          <th>Indirizzo IP</th>
+          <th>Registrato</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <tr><td colspan="9" class="empty"><div class="spinner"></div><br>Caricamento...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL  = 'https://triiimgopouyhyykkrve.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_E0nJu2_bfgRRxV8YUdBaBA_wVVB12z_';
+const ALLOWED_EMAIL = 'dli@exusrenewables.com';
+const REQUIRED_PARAM = 'k9mX2pL7nQ4wR';
+
+// Check secret param
+const params = new URLSearchParams(window.location.search);
+if (params.get('superadmin') !== REQUIRED_PARAM) {
+  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#FF6B6B;font-family:Sora,sans-serif;font-size:18px;">403 — Accesso negato</div>';
+}
+
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let allUsers = [];
+let allOrgs = [];
+let currentFilter = 'all';
+
+// ── AUTH ──
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+
+  if (email !== ALLOWED_EMAIL) {
+    errEl.textContent = '⛔ Accesso non autorizzato';
+    return;
+  }
+
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { errEl.textContent = '❌ ' + error.message; return; }
+
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  document.getElementById('nav-user-email').textContent = email;
+  loadData();
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  location.reload();
+}
+
+// Check if already logged in
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (session?.user?.email === ALLOWED_EMAIL) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    document.getElementById('nav-user-email').textContent = session.user.email;
+    loadData();
+  }
+});
+
+// ── DATA ──
+async function loadData() {
+  document.getElementById('table-body').innerHTML = '<tr><td colspan="9" class="empty"><div class="spinner"></div><br>Caricamento...</td></tr>';
+
+  const [{ data: orgsData }, { data: usersData }] = await Promise.all([
+    sb.from('organizations').select('*'),
+    sb.from('profiles').select('*').order('created_at', { ascending: false }),
+  ]);
+
+  allOrgs  = orgsData  || [];
+  allUsers = usersData || [];
+
+  renderStats();
+  renderTable();
+}
+
+function orgName(orgId) {
+  return allOrgs.find(o => o.id === orgId)?.name || '—';
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('it-IT', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function fmtDateTime(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('it-IT', { day:'2-digit', month:'short' }) + ' ' +
+         dt.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+}
+
+function fmtDuration(secs) {
+  if (!secs) return '—';
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
+function maxDuration() {
+  return Math.max(...allUsers.map(u => u.total_time_seconds || 0), 1);
+}
+
+// ── STATS ──
+function renderStats() {
+  const total = allUsers.length;
+  const orgs  = allOrgs.length;
+  const byPlan = (p) => allUsers.filter(u => (u.plan || 'starter') === p).length;
+
+  const stats = [
+    { label: 'Utenti totali',    value: total,             color: 'var(--stone)' },
+    { label: 'Organizzazioni',   value: orgs,              color: 'var(--blue)' },
+    { label: 'Enterprise',       value: byPlan('enterprise'), color: 'var(--glow)' },
+    { label: 'Pro',              value: byPlan('pro'),      color: 'var(--pro)' },
+    { label: 'Growth',           value: byPlan('growth'),   color: 'var(--blue)' },
+    { label: 'Starter',          value: byPlan('starter'),  color: 'var(--muted)' },
+  ];
+
+  document.getElementById('stats-grid').innerHTML = stats.map(s => `
+    <div class="stat-card">
+      <div class="stat-value" style="color:${s.color}">${s.value}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>
+  `).join('');
+}
+
+// ── FILTERS ──
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('filter-' + f).classList.add('active');
+  renderTable();
+}
+
+// ── TABLE ──
+function renderTable() {
+  const q = (document.getElementById('search-input').value || '').toLowerCase();
+  const maxSec = maxDuration();
+
+  const filtered = allUsers.filter(u => {
+    if (currentFilter !== 'all' && (u.plan || 'starter') !== currentFilter) return false;
+    if (!q) return true;
+    return [u.email, u.full_name, u.company, orgName(u.org_id), u.last_ip, u.last_activity]
+      .some(x => (x || '').toLowerCase().includes(q));
+  });
+
+  if (filtered.length === 0) {
+    document.getElementById('table-body').innerHTML =
+      '<tr><td colspan="9" class="empty">Nessun utente trovato</td></tr>';
+    return;
+  }
+
+  document.getElementById('table-body').innerHTML = filtered.map(u => {
+    const plan = u.plan || 'starter';
+    const pct  = Math.min(100, Math.round(((u.total_time_seconds || 0) / maxSec) * 100));
+    const planLabels = { starter:'Starter', growth:'Growth', pro:'Pro', enterprise:'Enterprise' };
+
+    return `
+    <tr>
+      <td>
+        <div class="user-email">${u.email || '—'}</div>
+        ${u.full_name ? `<div class="user-name">${u.full_name}</div>` : ''}
+      </td>
+      <td>
+        <div class="user-company">${u.company || '—'}</div>
+      </td>
+      <td>
+        <div class="org-tag">${orgName(u.org_id)}</div>
+      </td>
+      <td>
+        <select class="plan-select plan-${plan}" onchange="updatePlan('${u.id}', this.value)" style="color:${planColor(plan)};border-color:${planColor(plan)}40;background:${planColor(plan)}10">
+          ${['starter','growth','pro','enterprise'].map(p =>
+            `<option value="${p}" ${p===plan?'selected':''}>${planLabels[p]}</option>`
+          ).join('')}
+        </select>
+      </td>
+      <td><div class="time-tag">${fmtDateTime(u.last_sign_in)}</div></td>
+      <td>
+        <div class="duration-bar">
+          <div class="duration-track"><div class="duration-fill" style="width:${pct}%"></div></div>
+          <span class="mono">${fmtDuration(u.total_time_seconds)}</span>
+        </div>
+      </td>
+      <td><div class="activity-tag" title="${u.last_activity || '—'}">${u.last_activity || '—'}</div></td>
+      <td><div class="mono">${u.last_ip || '—'}</div></td>
+      <td><div class="time-tag">${fmtDate(u.created_at)}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+function planColor(p) {
+  return { starter:'#8A9E94', growth:'#60A5FA', pro:'#A78BFA', enterprise:'#00E896' }[p] || '#8A9E94';
+}
+
+// ── UPDATE PLAN ──
+async function updatePlan(userId, plan) {
+  await sb.from('profiles').update({ plan }).eq('id', userId);
+  await sb.from('subscriptions').upsert({
+    user_id: userId, plan, status: 'active',
+    updated_at: new Date().toISOString()
+  });
+  allUsers = allUsers.map(u => u.id === userId ? { ...u, plan } : u);
+  renderStats();
+  showToast('✅ Piano aggiornato → ' + plan);
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
