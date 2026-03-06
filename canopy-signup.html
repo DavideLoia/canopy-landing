@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canopy — Create your account</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --white:#FFFFFF;--snow:#FAFAF8;--stone:#F2F1ED;--border:#E8E6E0;--muted:#9A9890;
+  --ink:#1A1E1B;--forest:#0F2018;--pine:#1E4A30;--sage:#2A7A5A;--mint:#4DB884;
+  --glow:#7DD4A8;--pale:#EBF5F0;--red:#DC2626;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--snow);color:var(--ink);min-height:100vh;}
+nav{background:rgba(255,255,255,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 48px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-wordmark{font-family:'Sora',sans-serif;font-size:16px;font-weight:300;letter-spacing:5px;text-transform:uppercase;color:var(--forest);}
+.nav-back{font-size:13px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color 0.2s;}
+.nav-back:hover{color:var(--sage);}
+.page{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 60px);}
+.left-panel{background:var(--forest);padding:52px 48px;position:relative;overflow:hidden;}
+.left-panel::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 30% 80%,rgba(42,122,90,0.2) 0%,transparent 60%);}
+.left-inner{position:relative;z-index:2;}
+.left-title{font-family:'Sora',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:8px;}
+.left-heading{font-family:'Sora',sans-serif;font-size:28px;font-weight:800;color:white;letter-spacing:-0.8px;line-height:1.15;margin-bottom:36px;}
+.left-heading em{font-style:normal;color:var(--glow);}
+.plan-cards{display:flex;flex-direction:column;gap:10px;}
+.plan-card{background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;cursor:pointer;transition:all 0.2s;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;}
+.plan-card:hover{background:rgba(255,255,255,0.07);border-color:rgba(125,212,168,0.3);}
+.plan-card.selected{background:rgba(42,122,90,0.15);border-color:var(--mint);}
+.plan-radio{width:18px;height:18px;border:1.5px solid rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.plan-card.selected .plan-radio{border-color:var(--mint);background:var(--mint);}
+.plan-radio-dot{width:7px;height:7px;background:var(--forest);border-radius:50%;opacity:0;transition:opacity 0.15s;}
+.plan-card.selected .plan-radio-dot{opacity:1;}
+.plan-name{font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:white;margin-bottom:3px;}
+.plan-desc{font-size:12px;color:rgba(255,255,255,0.35);font-weight:300;line-height:1.4;}
+.plan-price{text-align:right;}
+.plan-price-num{font-family:'Sora',sans-serif;font-size:18px;font-weight:800;color:white;letter-spacing:-0.5px;}
+.plan-price-free{color:var(--glow);}
+.plan-price-period{font-size:10px;color:rgba(255,255,255,0.3);display:block;margin-top:1px;}
+.plan-features-preview{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.07);display:none;}
+.plan-card.selected .plan-features-preview{display:block;}
+.pf-item{font-size:11px;color:rgba(255,255,255,0.5);display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+.pf-check{color:var(--glow);font-size:10px;}
+.security-row{display:flex;gap:16px;margin-top:32px;flex-wrap:wrap;}
+.sec-badge{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.3);}
+.right-panel{background:white;padding:52px 48px;display:flex;flex-direction:column;justify-content:center;}
+.form-title{font-family:'Sora',sans-serif;font-size:24px;font-weight:800;color:var(--forest);letter-spacing:-0.5px;margin-bottom:6px;}
+.form-sub{font-size:14px;color:var(--muted);font-weight:300;margin-bottom:36px;}
+.form-sub a{color:var(--sage);text-decoration:none;font-weight:500;}
+.steps-indicator{display:flex;align-items:center;gap:8px;margin-bottom:32px;}
+.step-dot{width:28px;height:28px;border-radius:50%;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all 0.3s;}
+.step-dot.active{background:var(--forest);color:white;}
+.step-dot.done{background:var(--sage);color:white;}
+.step-dot.inactive{background:var(--stone);color:var(--muted);}
+.step-label{font-size:12px;font-weight:500;color:var(--muted);}
+.step-label.active{color:var(--forest);font-weight:600;}
+.step-connector{flex:1;height:1px;background:var(--border);}
+.form-section{display:none;}
+.form-section.visible{display:block;}
+.field{margin-bottom:18px;}
+.field label{display:block;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.field label .req{color:var(--red);margin-left:2px;}
+.field input{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);background:var(--snow);outline:none;transition:border-color 0.2s;}
+.field input:focus{border-color:var(--sage);background:white;}
+.field input.error{border-color:var(--red);}
+.field-error{font-size:12px;color:var(--red);margin-top:5px;display:none;}
+.field-error.visible{display:block;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.pw-strength{height:3px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden;}
+.pw-strength-bar{height:100%;width:0%;border-radius:2px;transition:all 0.3s;}
+.plan-summary{background:var(--pale);border:1px solid rgba(42,122,90,0.2);border-radius:12px;padding:16px 20px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;}
+.ps-name{font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--forest);}
+.ps-price{font-family:'Sora',sans-serif;font-size:20px;font-weight:800;color:var(--forest);letter-spacing:-0.5px;}
+.ps-period{font-size:11px;color:var(--muted);font-weight:300;}
+.ps-change{font-size:12px;color:var(--sage);cursor:pointer;text-decoration:underline;font-weight:500;margin-left:8px;}
+.payment-methods{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:24px;}
+.pay-method{border:1.5px solid var(--border);border-radius:10px;padding:14px 10px;text-align:center;cursor:pointer;transition:all 0.2s;}
+.pay-method:hover{border-color:var(--sage);}
+.pay-method.selected{border-color:var(--sage);background:var(--pale);}
+.pay-method-icon{font-size:20px;margin-bottom:4px;}
+.pay-method-name{font-family:'Sora',sans-serif;font-size:11px;font-weight:700;color:var(--ink);}
+#paypal-button-container{margin-bottom:16px;}
+.paypal-placeholder{background:#FFC439;border:none;border-radius:10px;width:100%;padding:14px;font-family:'Sora',sans-serif;font-size:15px;font-weight:800;color:#003087;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.paypal-placeholder:hover{background:#F0B400;transform:translateY(-1px);}
+.satispay-btn{background:#E4002B;border:none;border-radius:10px;width:100%;padding:14px;font-family:'Sora',sans-serif;font-size:15px;font-weight:800;color:white;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.satispay-btn:hover{background:#C00024;transform:translateY(-1px);}
+.btn-submit{width:100%;padding:14px;background:var(--forest);border:none;border-radius:10px;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:white;cursor:pointer;transition:all 0.2s;letter-spacing:0.3px;margin-bottom:12px;}
+.btn-submit:hover{background:var(--pine);transform:translateY(-1px);}
+.btn-submit:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.btn-back{width:100%;padding:12px;background:transparent;border:1.5px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.2s;margin-bottom:20px;}
+.btn-back:hover{border-color:var(--muted);color:var(--ink);}
+.msg-box{padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:16px;display:none;}
+.msg-box.visible{display:block;}
+.msg-box.error{background:#FEE2E2;color:var(--red);border:1px solid rgba(220,38,38,0.2);}
+.msg-box.success{background:var(--pale);color:var(--sage);border:1px solid rgba(42,122,90,0.2);}
+.terms-note{font-size:12px;color:var(--muted);text-align:center;line-height:1.5;font-weight:300;}
+.terms-note a{color:var(--sage);text-decoration:none;}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;margin-right:8px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media(max-width:800px){.page{grid-template-columns:1fr;}.left-panel,.right-panel{padding:32px 24px;}nav{padding:0 20px;}}
+</style>
+</head>
+<body>
+<nav>
+  <a class="nav-logo" href="https://canopy-landing.vercel.app">
+    <svg width="32" height="22" viewBox="0 0 64 44" fill="none">
+      <path d="M4 40 Q32 4 60 40" stroke="#2A7A5A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M13 40 Q32 13 51 40" stroke="rgba(42,122,90,0.28)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <line x1="32" y1="40" x2="32" y2="43" stroke="#2A7A5A" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="32" cy="5" r="2.5" fill="#2A7A5A"/>
+    </svg>
+    <span class="nav-wordmark">Canopy</span>
+  </a>
+  <a class="nav-back" href="https://canopy-landing.vercel.app">← Back to home</a>
+</nav>
+
+<div class="page">
+  <div class="left-panel">
+    <div class="left-inner">
+      <div class="left-title">Step 1 of 2</div>
+      <div class="left-heading">Choose your<br><em>plan.</em></div>
+      <div class="plan-cards">
+        <div class="plan-card selected" data-plan="starter" data-price="0" onclick="selectPlan(this)">
+          <div class="plan-radio"><div class="plan-radio-dot"></div></div>
+          <div class="plan-info">
+            <div class="plan-name">Starter</div>
+            <div class="plan-desc">Dashboard + Land payments</div>
+            <div class="plan-features-preview">
+              <div class="pf-item"><span class="pf-check">✓</span> Live Dashboard</div>
+              <div class="pf-item"><span class="pf-check">✓</span> Land Owner Payments</div>
+              <div class="pf-item" style="color:rgba(255,255,255,0.2)"><span>–</span> SPV, Vendors, Orders</div>
+            </div>
+          </div>
+          <div class="plan-price"><div class="plan-price-num plan-price-free">Free</div><span class="plan-price-period">forever</span></div>
+        </div>
+        <div class="plan-card" data-plan="growth" data-price="20" onclick="selectPlan(this)">
+          <div class="plan-radio"><div class="plan-radio-dot"></div></div>
+          <div class="plan-info">
+            <div class="plan-name">Growth <span style="background:rgba(125,212,168,0.15);color:#7DD4A8;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;margin-left:4px;">Most popular</span></div>
+            <div class="plan-desc">Full admin + treasury + procurement</div>
+            <div class="plan-features-preview">
+              <div class="pf-item"><span class="pf-check">✓</span> SPV Registry</div>
+              <div class="pf-item"><span class="pf-check">✓</span> Vendors & Notaries</div>
+              <div class="pf-item"><span class="pf-check">✓</span> Purchase Orders</div>
+            </div>
+          </div>
+          <div class="plan-price"><div class="plan-price-num">€20</div><span class="plan-price-period">user / month</span></div>
+        </div>
+        <div class="plan-card" data-plan="pro" data-price="40" onclick="selectPlan(this)">
+          <div class="plan-radio"><div class="plan-radio-dot"></div></div>
+          <div class="plan-info">
+            <div class="plan-name">Pro</div>
+            <div class="plan-desc">Growth + full project pipeline</div>
+            <div class="plan-features-preview">
+              <div class="pf-item"><span class="pf-check">✓</span> Everything in Growth</div>
+              <div class="pf-item"><span class="pf-check">✓</span> Project Pipeline</div>
+              <div class="pf-item"><span class="pf-check">✓</span> Advanced reports</div>
+            </div>
+          </div>
+          <div class="plan-price"><div class="plan-price-num">€40</div><span class="plan-price-period">user / month</span></div>
+        </div>
+        <div class="plan-card" data-plan="enterprise" data-price="60" onclick="selectPlan(this)">
+          <div class="plan-radio"><div class="plan-radio-dot"></div></div>
+          <div class="plan-info">
+            <div class="plan-name">Enterprise</div>
+            <div class="plan-desc">Full access + API + priority support</div>
+            <div class="plan-features-preview">
+              <div class="pf-item"><span class="pf-check">✓</span> Everything in Pro</div>
+              <div class="pf-item"><span class="pf-check">✓</span> API access</div>
+              <div class="pf-item"><span class="pf-check">✓</span> Dedicated onboarding</div>
+            </div>
+          </div>
+          <div class="plan-price"><div class="plan-price-num">€60</div><span class="plan-price-period">user / month</span></div>
+        </div>
+      </div>
+      <div class="security-row">
+        <div class="sec-badge">🔒 SSL encrypted</div>
+        <div class="sec-badge">🇪🇺 GDPR compliant</div>
+        <div class="sec-badge">↩ Cancel anytime</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="steps-indicator">
+      <div class="step-dot active" id="dot1">1</div>
+      <span class="step-label active" id="label1">Account</span>
+      <div class="step-connector"></div>
+      <div class="step-dot inactive" id="dot2">2</div>
+      <span class="step-label" id="label2">Payment</span>
+    </div>
+
+    <div class="form-section visible" id="step1">
+      <div class="form-title">Crea il tuo account</div>
+      <div class="form-sub">Hai già un account? <a href="https://project-evee.vercel.app">Accedi →</a></div>
+      <div class="msg-box" id="msg1"></div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Nome <span class="req">*</span></label>
+          <input type="text" id="firstName" placeholder="Marco" />
+          <div class="field-error" id="err-firstName">Campo obbligatorio</div>
+        </div>
+        <div class="field">
+          <label>Cognome <span class="req">*</span></label>
+          <input type="text" id="lastName" placeholder="Rossi" />
+          <div class="field-error" id="err-lastName">Campo obbligatorio</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Email di lavoro <span class="req">*</span></label>
+        <input type="email" id="email" placeholder="marco@tuaazienda.com" />
+        <div class="field-error" id="err-email">Inserisci un'email valida</div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Ragione sociale <span class="req">*</span></label>
+          <input type="text" id="company" placeholder="Nome azienda" />
+          <div class="field-error" id="err-company">Campo obbligatorio</div>
+        </div>
+        <div class="field">
+          <label>Partita IVA <span class="req">*</span></label>
+          <input type="text" id="piva" placeholder="IT12345678901" maxlength="13" oninput="formatPiva(this)" />
+          <div class="field-error" id="err-piva">P.IVA non valida (es. IT12345678901)</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Password <span class="req">*</span></label>
+        <input type="password" id="password" placeholder="Almeno 8 caratteri" oninput="checkPasswordStrength(this.value)" />
+        <div class="pw-strength"><div class="pw-strength-bar" id="pw-bar"></div></div>
+        <div class="field-error" id="err-password">Minimo 8 caratteri</div>
+      </div>
+
+      <div class="field">
+        <label>Conferma password <span class="req">*</span></label>
+        <input type="password" id="confirmPassword" placeholder="Ripeti la password" />
+        <div class="field-error" id="err-confirm">Le password non coincidono</div>
+      </div>
+
+      <button class="btn-submit" id="btn-step1" onclick="goToStep2()">Continua al pagamento →</button>
+      <p class="terms-note">Continuando accetti i <a href="#">Termini di Servizio</a> e la <a href="#">Privacy Policy</a> di Canopy.</p>
+    </div>
+
+    <div class="form-section" id="step2">
+      <div class="form-title">Completa il tuo ordine</div>
+      <div class="form-sub">Il pagamento attiva subito il tuo account completo.</div>
+      <div class="msg-box" id="msg2"></div>
+
+      <div class="plan-summary">
+        <div>
+          <div class="ps-name" id="ps-name">Starter Plan</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">Fatturato mensilmente per utente</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="ps-price" id="ps-price">Free</div>
+          <div class="ps-period" id="ps-period"></div>
+        </div>
+        <span class="ps-change" onclick="goBackToStep1()">Cambia</span>
+      </div>
+
+      <div id="free-section">
+        <div style="background:var(--pale);border:1px solid rgba(42,122,90,0.2);border-radius:12px;padding:20px;margin-bottom:24px;text-align:center;">
+          <div style="font-size:24px;margin-bottom:8px;">🎉</div>
+          <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:var(--forest);margin-bottom:6px;">Nessun pagamento richiesto</div>
+          <div style="font-size:13px;color:var(--muted);font-weight:300;">Il piano Starter è completamente gratuito. Crea il tuo account e inizia subito.</div>
+        </div>
+        <button class="btn-submit" id="btn-create-free" onclick="createFreeAccount()">Crea il mio account gratuito →</button>
+      </div>
+
+      <div id="paid-section" style="display:none;">
+        <div style="background:#fffbea;border:1px solid #f0c040;border-radius:10px;padding:14px 16px;margin-bottom:18px;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:18px;">🧪</span>
+          <div style="flex:1;">
+            <div style="font-size:12px;font-weight:700;color:#92620a;margin-bottom:2px;">Test mode — pagamenti disabilitati</div>
+            <div style="font-size:11px;color:#b07d2a;font-weight:300;">Attiva il tuo piano gratuitamente per testare tutte le funzionalità.</div>
+          </div>
+          <button class="btn-submit" style="margin:0;padding:10px 18px;font-size:13px;min-width:unset;" onclick="createAccount(selectedPlan.plan)">Attiva gratis →</button>
+        </div>
+        <div style="font-family:'Sora',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;opacity:0.4;">Paga con (coming soon)</div>
+        <div class="payment-methods">
+          <div class="pay-method selected" id="pm-paypal" onclick="selectPayment('paypal')"><div class="pay-method-icon">🅿</div><div class="pay-method-name">PayPal</div></div>
+          <div class="pay-method" id="pm-satispay" onclick="selectPayment('satispay')"><div class="pay-method-icon">⭕</div><div class="pay-method-name">Satispay</div></div>
+          <div class="pay-method" id="pm-card" onclick="selectPayment('card')"><div class="pay-method-icon">💳</div><div class="pay-method-name">Card</div></div>
+        </div>
+        <div id="paypal-section"><div id="paypal-button-container"><button class="paypal-placeholder" onclick="handlePayPalPayment()"><span style="font-size:20px;">🅿</span>Pay with PayPal</button></div></div>
+        <div id="satispay-section" style="display:none;"><button class="satispay-btn" onclick="handleSatispayPayment()"><span style="font-size:18px;">⭕</span>Pay with Satispay</button></div>
+        <div id="card-section" style="display:none;">
+          <div class="field"><label>Numero carta</label><input type="text" id="cardNum" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCard(this)"/></div>
+          <div class="field-row">
+            <div class="field"><label>Scadenza</label><input type="text" id="cardExp" placeholder="MM/YY" maxlength="5"/></div>
+            <div class="field"><label>CVV</label><input type="text" id="cardCvv" placeholder="123" maxlength="3"/></div>
+          </div>
+          <div class="field"><label>Intestatario</label><input type="text" id="cardName" placeholder="Marco Rossi"/></div>
+          <button class="btn-submit" onclick="handleCardPayment()">Paga <span id="pay-amount-btn">€20</span> / mese →</button>
+        </div>
+      </div>
+
+      <button class="btn-back" onclick="goBackToStep1()">← Indietro</button>
+      <p class="terms-note">🔒 Pagamento sicuro · Nessun costo nascosto · Cancella in qualsiasi momento</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://triiimgopouyhyykkrve.supabase.co';
+const SUPABASE_ANON='sb_publishable_E0nJu2_bfgRRxV8YUdBaBA_wVVB12z_';
+const{createClient}=window.supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_ANON);
+let selectedPlan={plan:'starter',price:0};
+let selectedPayment='paypal';
+
+function selectPlan(card){
+  document.querySelectorAll('.plan-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedPlan={plan:card.dataset.plan,price:parseInt(card.dataset.price)};
+}
+
+function goToStep2(){
+  if(!validateStep1())return;
+  const names={starter:'Starter',growth:'Growth',pro:'Pro',enterprise:'Enterprise'};
+  document.getElementById('ps-name').textContent=names[selectedPlan.plan]+' Plan';
+  document.getElementById('ps-price').textContent=selectedPlan.price===0?'Free':`€${selectedPlan.price}`;
+  document.getElementById('ps-period').textContent=selectedPlan.price>0?'/ user / month':'';
+  document.getElementById('pay-amount-btn').textContent=`€${selectedPlan.price}`;
+  document.getElementById('free-section').style.display=selectedPlan.price===0?'block':'none';
+  document.getElementById('paid-section').style.display=selectedPlan.price>0?'block':'none';
+  document.getElementById('step1').classList.remove('visible');
+  document.getElementById('step2').classList.add('visible');
+  document.getElementById('dot1').className='step-dot done';
+  document.getElementById('dot1').textContent='✓';
+  document.getElementById('label1').className='step-label';
+  document.getElementById('dot2').className='step-dot active';
+  document.getElementById('label2').className='step-label active';
+}
+
+function goBackToStep1(){
+  document.getElementById('step2').classList.remove('visible');
+  document.getElementById('step1').classList.add('visible');
+  document.getElementById('dot1').className='step-dot active';
+  document.getElementById('dot1').textContent='1';
+  document.getElementById('label1').className='step-label active';
+  document.getElementById('dot2').className='step-dot inactive';
+  document.getElementById('label2').className='step-label';
+}
+
+function validateStep1(){
+  let ok=true;
+  const clear=id=>document.getElementById(id).classList.remove('visible');
+  const show=id=>{document.getElementById(id).classList.add('visible');ok=false;};
+  ['err-firstName','err-lastName','err-email','err-company','err-piva','err-password','err-confirm'].forEach(clear);
+  if(!document.getElementById('firstName').value.trim())show('err-firstName');
+  if(!document.getElementById('lastName').value.trim())show('err-lastName');
+  const email=document.getElementById('email').value.trim();
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))show('err-email');
+  if(!document.getElementById('company').value.trim())show('err-company');
+  const piva=document.getElementById('piva').value.trim().toUpperCase().replace(/^IT/,'');
+  if(!piva||piva.length!==11||!/^\d+$/.test(piva))show('err-piva');
+  const pw=document.getElementById('password').value;
+  if(pw.length<8)show('err-password');
+  if(pw!==document.getElementById('confirmPassword').value)show('err-confirm');
+  return ok;
+}
+
+function formatPiva(input){
+  let v=input.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(v.length>0&&/^\d/.test(v))v='IT'+v;
+  if(v.startsWith('IT'))v='IT'+v.slice(2).replace(/\D/g,'').substring(0,11);
+  input.value=v;
+}
+
+function checkPasswordStrength(pw){
+  const bar=document.getElementById('pw-bar');
+  let s=0;
+  if(pw.length>=8)s++;if(/[A-Z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;
+  bar.style.width=['0%','25%','50%','75%','100%'][s];
+  bar.style.background=['','#ef4444','#f97316','#eab308','#22c55e'][s];
+}
+
+function selectPayment(method){
+  selectedPayment=method;
+  ['paypal','satispay','card'].forEach(m=>{
+    document.getElementById(`pm-${m}`).classList.toggle('selected',m===method);
+    document.getElementById(`${m}-section`).style.display=m===method?'block':'none';
+  });
+}
+
+function formatCard(input){
+  let v=input.value.replace(/\D/g,'').substring(0,16);
+  input.value=v.replace(/(.{4})/g,'$1 ').trim();
+}
+
+async function createAccount(plan){
+  const btnId = plan==='starter' ? 'btn-create-free' : null;
+  const btnEl = btnId ? document.getElementById(btnId) : null;
+  if(btnEl){btnEl.disabled=true;btnEl.innerHTML='<span class="spinner"></span>Creazione account…';}
+
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const fname    = document.getElementById('firstName').value.trim();
+  const lname    = document.getElementById('lastName').value.trim();
+  const company  = document.getElementById('company').value.trim();
+  const piva     = document.getElementById('piva').value.trim().toUpperCase();
+  const fullName = `${fname} ${lname}`;
+
+  const showErr = msg => {
+    const el = document.getElementById('msg2');
+    el.textContent = msg; el.className = 'msg-box error visible';
+    if(btnEl){ btnEl.disabled=false; btnEl.innerHTML='Crea il mio account gratuito →'; }
+  };
+
+  try {
+    // 1. Crea utente auth (senza trigger)
+    const { data, error } = await sb.auth.signUp({ email, password });
+    if(error) throw error;
+    const userId = data.user?.id;
+    if(!userId) throw new Error('Errore nella creazione utente');
+
+    // 2. Controlla se esiste già una P.IVA registrata
+    const { data: existingProfile } = await sb
+      .from('profiles').select('org_id').eq('piva', piva).limit(1);
+
+    let orgId = existingProfile?.[0]?.org_id || null;
+    let role  = 'viewer';
+
+    if(!orgId) {
+      // Nuova P.IVA → crea organizzazione, diventa admin
+      const { data: newOrg, error: orgErr } = await sb
+        .from('organizations').insert({ name: company, owner_id: userId }).select().single();
+      if(orgErr) throw orgErr;
+      orgId = newOrg.id;
+      role  = 'admin';
+    }
+
+    // 3. Crea profilo
+    const { error: profErr } = await sb.from('profiles').upsert({
+      id: userId, email, full_name: fullName,
+      role, company, piva, plan, org_id: orgId,
+      plan_started_at: new Date().toISOString()
+    });
+    if(profErr) throw profErr;
+
+    // 4. Crea subscription
+    await sb.from('subscriptions').upsert({
+      user_id: userId, plan, status: 'active',
+      created_at: new Date().toISOString()
+    });
+
+    window.location.href = `https://canopy-landing.vercel.app/canopy-success.html?plan=${plan}&email=${encodeURIComponent(email)}`;
+
+  } catch(err) {
+    showErr(err.message || 'Qualcosa è andato storto. Riprova.');
+  }
+}
+
+async function createFreeAccount(){await createAccount('starter');}
+async function handlePayPalPayment(){showPayMsg('🔄 Connessione a PayPal…');setTimeout(async()=>{showPayMsg('✅ Pagamento confermato!','success');await createAccount(selectedPlan.plan);},1500);}
+async function handleSatispayPayment(){showPayMsg('🔄 Connessione a Satispay…');setTimeout(async()=>{showPayMsg('✅ Pagamento confermato!','success');await createAccount(selectedPlan.plan);},1500);}
+async function handleCardPayment(){showPayMsg('🔄 Elaborazione carta…');setTimeout(async()=>{showPayMsg('✅ Pagamento confermato!','success');await createAccount(selectedPlan.plan);},1500);}
+function showPayMsg(text,type='success'){const el=document.getElementById('msg2');el.textContent=text;el.className=`msg-box ${type} visible`;}
+
+const urlPlan=new URLSearchParams(window.location.search).get('plan');
+if(urlPlan){const card=document.querySelector(`[data-plan="${urlPlan}"]`);if(card)selectPlan(card);}
+</script>
+</body>
+</html>
