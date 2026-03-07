@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canopy · Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@200;300;400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest:#0F2018; --pine:#2A7A5A; --sage:#5ECFA0; --glow:#00C896;
+    --bg:#F7F8F6; --white:#FFFFFF; --muted:#8A9E94; --border:#E2E8E4;
+    --text:#1A2E22; --danger:#E53935; --card-shadow:0 1px 4px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;min-height:100vh;}
+  nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 40px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .nav-center{display:flex;align-items:center;gap:6px;padding:5px 12px;background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.2);border-radius:20px;font-size:10px;font-weight:700;color:var(--pine);letter-spacing:1.5px;text-transform:uppercase;}
+  .nav-dot{width:6px;height:6px;background:var(--glow);border-radius:50%;animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(1.4)}}
+  .nav-right{display:flex;align-items:center;gap:12px;}
+  .nav-email{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+  .btn-logout{padding:6px 14px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;font-family:'Sora',sans-serif;cursor:pointer;transition:all 0.2s;}
+  .btn-logout:hover{border-color:var(--danger);color:var(--danger);}
+  .page{padding:32px 40px;}
+  .page-header{margin-bottom:28px;}
+  .page-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--sage);margin-bottom:6px;}
+  .page-title{font-size:26px;font-weight:800;color:var(--forest);letter-spacing:-0.5px;}
+  .page-sub{font-size:13px;color:var(--muted);margin-top:4px;font-weight:300;}
+  .stats-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px;}
+  .stat-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px 18px;box-shadow:var(--card-shadow);}
+  .stat-value{font-size:26px;font-weight:800;letter-spacing:-1px;margin-bottom:4px;}
+  .stat-label{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .search-wrap{flex:1;position:relative;}
+  .search-wrap input{width:100%;padding:9px 16px 9px 38px;background:var(--white);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-family:'Sora',sans-serif;outline:none;transition:border-color 0.2s;box-shadow:var(--card-shadow);}
+  .search-wrap input:focus{border-color:var(--sage);}
+  .search-wrap input::placeholder{color:var(--muted);}
+  .search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:13px;}
+  .filter-btn{padding:8px 14px;background:var(--white);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;font-weight:600;font-family:'Sora',sans-serif;cursor:pointer;transition:all 0.2s;box-shadow:var(--card-shadow);}
+  .filter-btn:hover{border-color:var(--pine);color:var(--pine);}
+  .filter-btn.active{background:var(--forest);border-color:var(--forest);color:#fff;}
+  .btn-refresh{padding:8px 16px;background:var(--forest);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:600;font-family:'Sora',sans-serif;cursor:pointer;transition:opacity 0.2s;}
+  .btn-refresh:hover{opacity:0.85;}
+  .table-wrap{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--card-shadow);}
+  table{width:100%;border-collapse:collapse;}
+  thead tr{background:#F9FBF9;border-bottom:1px solid var(--border);}
+  th{padding:11px 16px;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);text-align:left;white-space:nowrap;}
+  tbody tr{border-bottom:1px solid #F3F5F3;transition:background 0.1s;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:#F7FBF8;}
+  td{padding:13px 16px;font-size:12px;vertical-align:middle;}
+  .user-name-main{font-size:13px;font-weight:700;color:var(--text);}
+  .user-email-sub{font-size:11px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace;}
+  .piva-tag{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+  .role-badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:0.5px;}
+  .online-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:middle;}
+  .plan-select{padding:5px 8px;border-radius:6px;font-size:11px;font-weight:700;font-family:'Sora',sans-serif;cursor:pointer;outline:none;border:1px solid;}
+  .mono{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+  .time-tag{font-size:11px;color:var(--muted);white-space:nowrap;}
+  .empty{text-align:center;padding:50px;color:var(--muted);font-size:13px;}
+  .spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--sage);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:10px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .btn-edit-row{padding:5px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;color:var(--pine);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Sora',sans-serif;transition:background 0.15s;}
+  .btn-edit-row:hover{background:#dcfce7;}
+  /* LOGIN */
+  #login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0F2018 0%,#1a3828 100%);display:flex;align-items:center;justify-content:center;z-index:999;}
+  .login-card{background:#fff;border-radius:20px;padding:44px 40px;width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+  .login-logo{font-size:12px;font-weight:300;letter-spacing:6px;text-transform:uppercase;color:var(--forest);margin-bottom:4px;}
+  .login-sub{font-size:11px;color:var(--muted);margin-bottom:32px;letter-spacing:0.5px;}
+  .login-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  .login-input{width:100%;padding:11px 14px;background:#F7F8F6;border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-family:'Sora',sans-serif;outline:none;margin-bottom:14px;transition:border-color 0.2s;}
+  .login-input:focus{border-color:var(--sage);background:#fff;}
+  .login-btn{width:100%;padding:13px;background:var(--forest);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;font-family:'Sora',sans-serif;cursor:pointer;transition:opacity 0.2s;margin-top:4px;}
+  .login-btn:hover{opacity:0.88;}
+  .login-error{font-size:12px;color:var(--danger);margin-top:12px;min-height:18px;font-weight:500;}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--forest);color:var(--sage);border-radius:10px;padding:11px 18px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transform:translateY(8px);transition:all 0.3s;pointer-events:none;}
+  .toast.show{opacity:1;transform:translateY(0);}
+  /* MODALS */
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,32,24,0.55);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:1000;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:#fff;border-radius:20px;padding:32px 36px;width:min(580px,96vw);box-shadow:0 28px 80px rgba(0,0,0,0.25);max-height:92vh;overflow-y:auto;}
+  .modal-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+  .modal-icon{width:38px;height:38px;background:#F0FDF4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+  .modal-title{font-size:16px;font-weight:800;color:var(--forest);}
+  .modal-sub{font-size:12px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace;}
+  .edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px;}
+  .edit-field{display:flex;flex-direction:column;gap:5px;}
+  .edit-field.full{grid-column:1/-1;}
+  .edit-label{font-size:9px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:1px;display:flex;gap:3px;}
+  .edit-label .req{color:#ef4444;}
+  .edit-input{padding:10px 12px;border:1.5px solid #E5E7EB;border-radius:9px;font-size:13px;color:var(--text);outline:none;font-family:'Sora',sans-serif;transition:border-color 0.15s;}
+  .edit-input:focus{border-color:var(--pine);}
+  .edit-input.invalid{border-color:#ef4444;background:#fef2f2;}
+  .edit-select{padding:10px 12px;border:1.5px solid #E5E7EB;border-radius:9px;font-size:13px;color:var(--text);background:#fff;cursor:pointer;font-family:'Sora',sans-serif;outline:none;}
+  .edit-select:focus{border-color:var(--pine);}
+  .edit-hint{font-size:10px;color:#9CA3AF;}
+  .edit-divider{border:none;border-top:1px solid var(--border);margin:18px 0 16px;}
+  .modal-footer{display:flex;gap:10px;justify-content:space-between;margin-top:24px;}
+  .btn-cancel{padding:10px 20px;background:#f3f4f6;border:none;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;color:#374151;}
+  .btn-cancel:hover{background:#e5e7eb;}
+  .btn-save{padding:10px 24px;background:var(--pine);border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;color:#fff;font-family:'Sora',sans-serif;transition:opacity 0.15s;}
+  .btn-save:disabled{opacity:0.5;cursor:default;}
+  .btn-delete{padding:10px 18px;background:#FEF2F2;border:1.5px solid #FECACA;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;color:#DC2626;font-family:'Sora',sans-serif;transition:all 0.15s;}
+  .btn-delete:hover{background:#DC2626;color:#fff;border-color:#DC2626;}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">CANOPY</div>
+    <div class="login-sub">Admin Intelligence · Accesso riservato</div>
+    <div class="login-label">Email</div>
+    <input class="login-input" type="email" id="login-email" placeholder="loiaconodavide@gmail.com" />
+    <div class="login-label">Password</div>
+    <input class="login-input" type="password" id="login-password" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="login-btn" onclick="doLogin()">Accedi →</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<div id="main-app" style="display:none">
+  <nav>
+    <a href="#" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
+      <svg width="32" height="22" viewBox="0 0 64 44" fill="none">
+        <path d="M4 40 Q32 4 60 40" stroke="#2A7A5A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M13 40 Q32 13 51 40" stroke="rgba(42,122,90,0.28)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <line x1="32" y1="40" x2="32" y2="43" stroke="#2A7A5A" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="32" cy="5" r="2.5" fill="#2A7A5A"/>
+      </svg>
+      <span style="font-size:12px;font-weight:300;letter-spacing:5px;text-transform:uppercase;color:var(--forest)">CANOPY</span>
+    </a>
+    <div class="nav-center"><div class="nav-dot"></div>Admin Intelligence</div>
+    <div class="nav-right">
+      <span class="nav-email" id="nav-email"></span>
+      <button class="btn-logout" onclick="doLogout()">Esci</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <div class="page-label">Pannello di controllo</div>
+      <div class="page-title">Utenti &amp; Organizzazioni</div>
+      <div class="page-sub">Gestione globale degli iscritti alla piattaforma Canopy</div>
+    </div>
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input id="search-input" type="text" placeholder="Cerca per nome, email, organizzazione, P.IVA..." oninput="renderTable()" />
+      </div>
+      <button class="filter-btn active" id="filter-all"        onclick="setFilter('all')">Tutti</button>
+      <button class="filter-btn"        id="filter-starter"    onclick="setFilter('starter')">Starter</button>
+      <button class="filter-btn"        id="filter-growth"     onclick="setFilter('growth')">Growth</button>
+      <button class="filter-btn"        id="filter-pro"        onclick="setFilter('pro')">Pro</button>
+      <button class="filter-btn"        id="filter-enterprise" onclick="setFilter('enterprise')">Enterprise</button>
+      <button class="btn-refresh" onclick="loadData();updateRefreshTimer()">↻ Aggiorna <span id="refresh-countdown" style="opacity:0.6;font-size:11px;margin-left:4px;">30s</span></button>
+      <button class="filter-btn" onclick="exportExcel()">↓ Esporta</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome e Cognome</th>
+            <th>Organizzazione</th>
+            <th>P.IVA</th>
+            <th>Ruolo</th>
+            <th>Piano</th>
+            <th>Stato</th>
+            <th>Ultimo Accesso</th>
+            <th>IP</th>
+            <th>Registrato</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr><td colspan="10" class="empty"><div class="spinner"></div><br>Caricamento...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Confirm Plan Modal -->
+<div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(15,32,24,0.6);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:32px;width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.2);font-family:'Sora',sans-serif;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="width:36px;height:36px;background:#F0FDF4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;">⚙️</div>
+      <div style="font-size:15px;font-weight:800;color:#0F2018;">Modifica piano</div>
+    </div>
+    <div style="font-size:13px;color:#6B7280;margin-bottom:6px;">Stai modificando il piano di:</div>
+    <div id="modal-email" style="font-size:13px;font-weight:700;color:#0F2018;margin-bottom:8px;"></div>
+    <div id="modal-cascade-note" style="font-size:11px;color:#d97706;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;margin-bottom:12px;display:none;">⚠️ Questo utente è admin dell'organizzazione — il piano cambierà per tutti gli utenti collegati.</div>
+    <div style="display:flex;align-items:center;gap:10px;background:#F9FBF9;border:1px solid #E2E8E4;border-radius:10px;padding:12px 16px;margin-bottom:24px;">
+      <span id="modal-old-plan"></span>
+      <span style="color:#9CA3AF;font-size:14px;">→</span>
+      <span id="modal-new-plan"></span>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="confirmModal(false)" style="flex:1;padding:11px;background:transparent;border:1.5px solid #E2E8E4;border-radius:10px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:#6B7280;cursor:pointer;">Annulla</button>
+      <button onclick="confirmModal(true)"  style="flex:1;padding:11px;background:linear-gradient(135deg,#0F2018,#1E4A30);border:none;border-radius:10px;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">✓ Conferma</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal-overlay" id="edit-user-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-icon">✏️</div>
+      <div>
+        <div class="modal-title">Modifica utente</div>
+        <div class="modal-sub" id="edit-modal-email"></div>
+      </div>
+    </div>
+    <div class="edit-grid">
+      <div class="edit-field">
+        <label class="edit-label">Nome <span class="req">*</span></label>
+        <input class="edit-input" id="edit-first-name" placeholder="Mario" autocomplete="off" />
+      </div>
+      <div class="edit-field">
+        <label class="edit-label">Cognome <span class="req">*</span></label>
+        <input class="edit-input" id="edit-last-name" placeholder="Rossi" autocomplete="off" />
+      </div>
+      <div class="edit-field full">
+        <label class="edit-label">Email <span class="req">*</span></label>
+        <input class="edit-input" id="edit-email" type="email" placeholder="mario@esempio.it" autocomplete="new-email" />
+      </div>
+      <div class="edit-field full">
+        <label class="edit-label">Nuova password <span style="color:#9ca3af;font-weight:400;text-transform:none;letter-spacing:0">(opzionale)</span></label>
+        <input class="edit-input" id="edit-password" type="password" placeholder="Lascia vuoto per non cambiare" autocomplete="new-password" />
+        <span class="edit-hint">Min. 8 caratteri · Per cambiare password usa Supabase Dashboard</span>
+      </div>
+    </div>
+    <hr class="edit-divider">
+    <div class="edit-grid">
+      <div class="edit-field">
+        <label class="edit-label">Ruolo <span class="req">*</span></label>
+        <select class="edit-select" id="edit-role">
+          <option value="viewer">👁️ Viewer</option>
+          <option value="editor">✏️ Editor</option>
+          <option value="admin">👑 Admin</option>
+        </select>
+      </div>
+      <div class="edit-field">
+        <label class="edit-label">Piano</label>
+        <select class="edit-select" id="edit-plan">
+          <option value="starter">Starter</option>
+          <option value="growth">Growth</option>
+          <option value="pro">Pro</option>
+          <option value="enterprise">Enterprise</option>
+        </select>
+      </div>
+      <div class="edit-field">
+        <label class="edit-label">Azienda</label>
+        <input class="edit-input" id="edit-company" placeholder="Acme SRL" autocomplete="off" />
+      </div>
+      <div class="edit-field">
+        <label class="edit-label">P.IVA</label>
+        <input class="edit-input" id="edit-piva" placeholder="IT12345678901" autocomplete="off" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-delete" id="btn-delete-user" onclick="deleteUser()">🗑 Elimina account</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-cancel" onclick="closeEditModal()">Annulla</button>
+        <button class="btn-save" id="btn-edit-save" onclick="saveEditUser()">💾 Salva</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div id="delete-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(15,32,24,0.6);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:32px;width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.25);font-family:'Sora',sans-serif;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <div style="width:36px;height:36px;background:#FEF2F2;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;">🗑</div>
+      <div style="font-size:15px;font-weight:800;color:#0F2018;">Elimina account</div>
+    </div>
+    <div style="font-size:13px;color:#6B7280;margin-bottom:8px;">Stai per eliminare definitivamente:</div>
+    <div id="delete-modal-email" style="font-size:13px;font-weight:700;color:#DC2626;margin-bottom:20px;"></div>
+    <div style="font-size:12px;color:#9CA3AF;background:#FEF2F2;border-radius:8px;padding:10px 14px;margin-bottom:20px;">Questa azione è irreversibile. Il profilo verrà rimosso dal database.</div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="confirmDelete(false)" style="flex:1;padding:11px;background:transparent;border:1.5px solid #E2E8E4;border-radius:10px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:#6B7280;cursor:pointer;">Annulla</button>
+      <button onclick="confirmDelete(true)"  style="flex:1;padding:11px;background:#DC2626;border:none;border-radius:10px;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">🗑 Elimina</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL  = 'https://triiimgopouyhyykkrve.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_E0nJu2_bfgRRxV8YUdBaBA_wVVB12z_';
+const ALLOWED_EMAIL = 'loiaconodavide@gmail.com';
+
+const { createClient } = window.supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+async function adminFetch(method, path, body) {
+  const { data: { session } } = await sb.auth.getSession();
+  const token = session?.access_token;
+  if (!token) throw new Error('Non autenticato');
+  const prefer = method === 'DELETE' ? 'return=representation' : 'return=minimal';
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method,
+    headers: { 'Content-Type':'application/json', 'apikey':SUPABASE_ANON, 'Authorization':`Bearer ${token}`, 'Prefer':prefer },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  if (method === 'DELETE') {
+    const text = await res.text();
+    const deleted = text ? JSON.parse(text) : [];
+    if (!Array.isArray(deleted) || deleted.length === 0) throw new Error('Eliminazione bloccata da RLS — aggiungi policy DELETE su profiles in Supabase');
+  }
+}
+
+let allUsers = [], allOrgs = [], currentFilter = 'all';
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+  if (email !== ALLOWED_EMAIL) { errEl.textContent = '⛔ Accesso non autorizzato'; return; }
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { errEl.textContent = '❌ ' + error.message; return; }
+  showApp(email); loadData();
+}
+function showApp(email) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  document.getElementById('nav-email').textContent = email;
+  startAutoRefresh();
+}
+async function doLogout() { await sb.auth.signOut(); location.reload(); }
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (session?.user?.email === ALLOWED_EMAIL) { showApp(session.user.email); loadData(); }
+});
+
+async function loadData() {
+  document.getElementById('table-body').innerHTML = '<tr><td colspan="10" class="empty"><div class="spinner"></div><br>Caricamento...</td></tr>';
+  const [{ data: orgsData }, { data: usersData }] = await Promise.all([
+    sb.from('organizations').select('*'),
+    sb.from('profiles').select('*'),
+  ]);
+  allOrgs  = orgsData  || [];
+  allUsers = (usersData || []).sort((a,b) => {
+    const oA = orgName(a.org_id).toLowerCase(), oB = orgName(b.org_id).toLowerCase();
+    if (oA !== oB) return oA.localeCompare(oB);
+    const pA = (a.piva||'').toLowerCase(), pB = (b.piva||'').toLowerCase();
+    if (pA !== pB) return pA.localeCompare(pB);
+    const ro = {admin:0,editor:1,viewer:2};
+    return (ro[a.role]??2) - (ro[b.role]??2);
+  });
+  // Auto-propagate piva+company from org admin to members who are missing them
+  const patchQueue = [];
+  allUsers.forEach(u => {
+    if (u.piva && u.company) return; // already has both, skip
+    if (!u.org_id) return; // no org, skip
+    const orgAdmin = allUsers.find(a => a.org_id === u.org_id && a.role === 'admin' && a.id !== u.id && (a.piva || a.company));
+    if (!orgAdmin) return;
+    const patch = {};
+    if (!u.piva    && orgAdmin.piva)    patch.piva    = orgAdmin.piva;
+    if (!u.company && orgAdmin.company) patch.company = orgAdmin.company;
+    if (Object.keys(patch).length) patchQueue.push({ id: u.id, patch });
+  });
+  if (patchQueue.length) {
+    await Promise.all(patchQueue.map(({ id, patch }) =>
+      adminFetch('PATCH', `profiles?id=eq.${id}`, patch).catch(()=>{})
+    ));
+    // Update local cache too
+    patchQueue.forEach(({ id, patch }) => {
+      allUsers = allUsers.map(u => u.id === id ? { ...u, ...patch } : u);
+    });
+  }
+  renderStats(); renderTable();
+}
+
+const orgName = id => allOrgs.find(o => o.id === id)?.name || '—';
+const fmtDate = d => d ? new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+const fmtDateTime = d => {
+  if (!d) return '—';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('it-IT',{day:'2-digit',month:'short'}) + ' ' + dt.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+};
+
+const planColors = {
+  starter:    {color:'#6B7280',bg:'#F3F4F6',border:'#D1D5DB'},
+  growth:     {color:'#2563EB',bg:'#EFF6FF',border:'#BFDBFE'},
+  pro:        {color:'#7C3AED',bg:'#F5F3FF',border:'#DDD6FE'},
+  enterprise: {color:'#059669',bg:'#ECFDF5',border:'#A7F3D0'},
+};
+const roleColors = { admin:{color:'#059669',bg:'#ECFDF5'}, editor:{color:'#D97706',bg:'#FFFBEB'}, viewer:{color:'#6B7280',bg:'#F3F4F6'} };
+const roleLabels = { admin:'👑 Admin', editor:'✏️ Editor', viewer:'👁️ Viewer' };
+
+function renderStats() {
+  const byPlan = p => allUsers.filter(u=>(u.plan||'starter')===p).length;
+  const online = allUsers.filter(u => u.last_sign_in && (Date.now()-new Date(u.last_sign_in).getTime()) < 3*60*1000).length;
+  const stats = [
+    {label:'Utenti totali', value:allUsers.length, color:'#1A2E22'},
+    {label:'Online ora',    value:online,           color:'#059669'},
+    {label:'Organizzazioni',value:allOrgs.length,   color:'#2563EB'},
+    {label:'Enterprise',    value:byPlan('enterprise'), color:'#059669'},
+    {label:'Growth',        value:byPlan('growth'),     color:'#2563EB'},
+    {label:'Starter',       value:byPlan('starter'),    color:'#6B7280'},
+  ];
+  document.getElementById('stats-grid').innerHTML = stats.map(s=>`
+    <div class="stat-card"><div class="stat-value" style="color:${s.color}">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('filter-'+f).classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const q = (document.getElementById('search-input').value||'').toLowerCase();
+  const filtered = allUsers.filter(u => {
+    if (currentFilter !== 'all' && (u.plan||'starter') !== currentFilter) return false;
+    if (!q) return true;
+    return [u.email,u.full_name,u.company,u.piva,orgName(u.org_id),u.last_ip].some(x=>(x||'').toLowerCase().includes(q));
+  });
+  if (!filtered.length) {
+    document.getElementById('table-body').innerHTML = '<tr><td colspan="10" class="empty">Nessun utente trovato</td></tr>';
+    return;
+  }
+  document.getElementById('table-body').innerHTML = filtered.map(u => {
+    const plan = u.plan||'starter';
+    const pc = planColors[plan]||planColors.starter;
+    const rc = roleColors[u.role||'viewer']||roleColors.viewer;
+    const isOnline = u.last_sign_in && (Date.now()-new Date(u.last_sign_in).getTime()) < 3*60*1000;
+    const plans = ['starter','growth','pro','enterprise'];
+    const nameHtml = u.full_name
+      ? `<div class="user-name-main">${u.full_name}</div>`
+      : `<div class="user-name-main" style="color:#e2856a;font-style:italic">⚠ nome mancante</div>`;
+    return `<tr>
+      <td>${nameHtml}<div class="user-email-sub">${u.email||'—'}</div></td>
+      <td>${orgName(u.org_id)}</td>
+      <td><div class="piva-tag">${u.piva||'—'}</div></td>
+      <td>
+        <select onchange="updateRole('${u.id}',this.value,this)" style="color:${rc.color};background:${rc.bg};border:1.5px solid ${rc.color}33;padding:5px 8px;border-radius:6px;font-size:11px;font-weight:700;font-family:'Sora',sans-serif;cursor:pointer;outline:none;">
+          <option value="viewer"${(u.role||'viewer')==='viewer'?' selected':''}>👁️ Viewer</option>
+          <option value="editor"${u.role==='editor'?' selected':''}>✏️ Editor</option>
+          <option value="admin"${u.role==='admin'?' selected':''}>👑 Admin</option>
+        </select>
+      </td>
+      <td>
+        <select class="plan-select" onchange="updatePlan('${u.id}',this.value,this)" style="color:${pc.color};background:${pc.bg};border-color:${pc.border}">
+          ${plans.map(p=>`<option value="${p}"${p===plan?' selected':''}>${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('')}
+        </select>
+      </td>
+      <td><span class="online-dot" style="background:${isOnline?'#10B981':'#D1D5DB'}"></span><span style="font-size:11px;color:${isOnline?'#059669':'#9CA3AF'}">${isOnline?'Online':'Offline'}</span></td>
+      <td><div class="time-tag">${fmtDateTime(u.last_sign_in)}</div></td>
+      <td><div class="mono">${u.last_ip||'—'}</div></td>
+      <td><div class="time-tag">${fmtDate(u.created_at)}</div></td>
+      <td><button class="btn-edit-row" onclick="openEditModal('${u.id}')">✏️ Modifica</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// UPDATE PLAN with cascade
+async function updatePlan(userId, newPlan, selectEl) {
+  const user = allUsers.find(u => u.id === userId);
+  const oldPlan = user?.plan || 'starter';
+  if (newPlan === oldPlan) return;
+  const isOrgAdmin = user?.role === 'admin' && user?.org_id;
+  const orgMembers = isOrgAdmin ? allUsers.filter(u => u.org_id === user.org_id && u.id !== userId) : [];
+  await showConfirmModal(user?.email || userId, oldPlan, newPlan, isOrgAdmin && orgMembers.length > 0);
+  const confirmed = await waitForModal();
+  if (!confirmed) { if (selectEl) selectEl.value = oldPlan; return; }
+  showToast('⏳ Aggiornamento in corso…');
+  try {
+    await adminFetch('PATCH', `profiles?id=eq.${userId}`, { plan: newPlan });
+    const { data: existingSub } = await sb.from('subscriptions').select('id').eq('user_id', userId).single();
+    if (existingSub) await adminFetch('PATCH', `subscriptions?user_id=eq.${userId}`, { plan:newPlan, status:'active', updated_at:new Date().toISOString() });
+    else await adminFetch('POST', 'subscriptions', { user_id:userId, plan:newPlan, status:'active', created_at:new Date().toISOString() });
+    // Cascade to org members
+    if (isOrgAdmin && orgMembers.length > 0) {
+      for (const m of orgMembers) {
+        const pivaPayload = { plan: newPlan };
+        if (user.piva) pivaPayload.piva = user.piva;
+        await adminFetch('PATCH', `profiles?id=eq.${m.id}`, pivaPayload);
+        const { data: mSub } = await sb.from('subscriptions').select('id').eq('user_id', m.id).single();
+        if (mSub) await adminFetch('PATCH', `subscriptions?user_id=eq.${m.id}`, { plan:newPlan, status:'active', updated_at:new Date().toISOString() });
+        else await adminFetch('POST', 'subscriptions', { user_id:m.id, plan:newPlan, status:'active', created_at:new Date().toISOString() });
+      }
+      showToast(`✅ Piano aggiornato per ${orgMembers.length+1} utenti`);
+    } else {
+      showToast('✅ Piano aggiornato → ' + newPlan);
+    }
+    await loadData();
+  } catch(e) {
+    showToast('❌ ' + e.message);
+    if (selectEl) selectEl.value = oldPlan;
+  }
+}
+
+let _modalResolve = null;
+function showConfirmModal(email, oldPlan, newPlan, cascade=false) {
+  const pc = { starter:{color:'#6B7280',bg:'#F3F4F6'}, growth:{color:'#2563EB',bg:'#EFF6FF'}, pro:{color:'#7C3AED',bg:'#F5F3FF'}, enterprise:{color:'#059669',bg:'#ECFDF5'} };
+  document.getElementById('modal-email').textContent = email;
+  const oc=pc[oldPlan]||pc.starter, nc=pc[newPlan]||pc.starter;
+  const oEl=document.getElementById('modal-old-plan'), nEl=document.getElementById('modal-new-plan');
+  oEl.textContent=oldPlan.charAt(0).toUpperCase()+oldPlan.slice(1);
+  oEl.style.cssText=`padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;color:${oc.color};background:${oc.bg};`;
+  nEl.textContent=newPlan.charAt(0).toUpperCase()+newPlan.slice(1);
+  nEl.style.cssText=`padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;color:${nc.color};background:${nc.bg};`;
+  document.getElementById('modal-cascade-note').style.display = cascade ? 'block' : 'none';
+  document.getElementById('confirm-modal').style.display = 'flex';
+}
+function waitForModal() { return new Promise(r => { _modalResolve = r; }); }
+function confirmModal(v) { document.getElementById('confirm-modal').style.display='none'; if(_modalResolve){_modalResolve(v);_modalResolve=null;} }
+
+// EDIT MODAL
+let _editUserId = null;
+function openEditModal(userId) {
+  const u = allUsers.find(x => x.id === userId);
+  if (!u) return;
+  _editUserId = userId;
+  const parts = (u.full_name||'').trim().split(' ');
+  document.getElementById('edit-modal-email').textContent = u.email || userId;
+  document.getElementById('edit-first-name').value = parts[0]||'';
+  document.getElementById('edit-last-name').value  = parts.slice(1).join(' ')||'';
+  document.getElementById('edit-email').value      = u.email||'';
+  document.getElementById('edit-password').value   = '';
+  document.getElementById('edit-role').value       = u.role||'viewer';
+  document.getElementById('edit-plan').value       = u.plan||'starter';
+  // Inherit company and piva from org admin if user doesn't have them
+  const orgAdmin = u.org_id ? allUsers.find(x => x.org_id === u.org_id && x.role === 'admin' && x.id !== u.id) : null;
+  document.getElementById('edit-company').value = u.company || orgAdmin?.company || '';
+  document.getElementById('edit-piva').value    = u.piva    || orgAdmin?.piva    || '';
+  ['edit-first-name','edit-last-name','edit-email'].forEach(id => document.getElementById(id).classList.remove('invalid'));
+  document.getElementById('edit-user-modal').classList.add('open');
+}
+function closeEditModal() { document.getElementById('edit-user-modal').classList.remove('open'); _editUserId=null; }
+
+async function saveEditUser() {
+  const firstName = document.getElementById('edit-first-name').value.trim();
+  const lastName  = document.getElementById('edit-last-name').value.trim();
+  const email     = document.getElementById('edit-email').value.trim();
+  const password  = document.getElementById('edit-password').value;
+  const role      = document.getElementById('edit-role').value;
+  const plan      = document.getElementById('edit-plan').value;
+  const company   = document.getElementById('edit-company').value.trim();
+  const piva      = document.getElementById('edit-piva').value.trim();
+  let valid = true;
+  [['edit-first-name',firstName],['edit-last-name',lastName],['edit-email',email]].forEach(([id,val]) => {
+    const el = document.getElementById(id);
+    if (!val) { el.classList.add('invalid'); valid=false; } else el.classList.remove('invalid');
+  });
+  if (!valid) return;
+  if (password && password.length < 8) { document.getElementById('edit-password').classList.add('invalid'); showToast('⚠️ Password min. 8 caratteri'); return; }
+  const btn = document.getElementById('btn-edit-save');
+  btn.disabled=true; btn.textContent='⏳ Salvataggio...';
+  try {
+    const fullName = `${firstName} ${lastName}`.trim();
+    const payload = { full_name:fullName, email, role, plan };
+    if (company) payload.company = company;
+    if (piva) payload.piva = piva;
+    await adminFetch('PATCH', `profiles?id=eq.${_editUserId}`, payload);
+    const { data: existingSub } = await sb.from('subscriptions').select('id').eq('user_id', _editUserId).single();
+    if (existingSub) await adminFetch('PATCH', `subscriptions?user_id=eq.${_editUserId}`, { plan, status:'active', updated_at:new Date().toISOString() });
+    allUsers = allUsers.map(u => u.id===_editUserId ? {...u, full_name:fullName, email, role, plan, company:company||u.company, piva:piva||u.piva} : u);
+    renderTable(); renderStats();
+    closeEditModal();
+    showToast(password ? '✅ Salvato (per la password usa Supabase Dashboard)' : '✅ Utente aggiornato');
+  } catch(err) { showToast('❌ '+(err.message||err)); }
+  finally { btn.disabled=false; btn.textContent='💾 Salva'; }
+}
+
+// DELETE USER
+let _deleteResolve = null;
+async function deleteUser() {
+  const u = allUsers.find(x => x.id===_editUserId);
+  if (!u) return;
+  document.getElementById('delete-modal-email').textContent = u.full_name ? `${u.full_name} (${u.email})` : u.email;
+  document.getElementById('delete-confirm-modal').style.display = 'flex';
+  const confirmed = await new Promise(r => { _deleteResolve=r; });
+  if (!confirmed) return;
+  document.getElementById('btn-delete-user').disabled = true;
+  try {
+    await adminFetch('DELETE', `profiles?id=eq.${_editUserId}`, null);
+    allUsers = allUsers.filter(x => x.id!==_editUserId);
+    renderTable(); renderStats();
+    closeEditModal();
+    showToast('✅ Account eliminato');
+  } catch(err) { showToast('❌ '+err.message); document.getElementById('btn-delete-user').disabled=false; }
+}
+
+// UPDATE ROLE
+let _roleModalResolve = null;
+async function updateRole(userId, newRole, selectEl) {
+  const user = allUsers.find(u => u.id === userId);
+  const oldRole = user?.role || 'viewer';
+  if (newRole === oldRole) return;
+  const rc = { admin:{color:'#059669',bg:'#ECFDF5'}, editor:{color:'#D97706',bg:'#FFFBEB'}, viewer:{color:'#6B7280',bg:'#F3F4F6'} };
+  const rl = { admin:'👑 Admin', editor:'✏️ Editor', viewer:'👁️ Viewer' };
+  document.getElementById('role-modal-email').textContent = user?.email || userId;
+  const oEl = document.getElementById('role-modal-old'), nEl = document.getElementById('role-modal-new');
+  const oc=rc[oldRole]||rc.viewer, nc=rc[newRole]||rc.viewer;
+  oEl.textContent=rl[oldRole]; oEl.style.cssText=`padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;color:${oc.color};background:${oc.bg};`;
+  nEl.textContent=rl[newRole]; nEl.style.cssText=`padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;color:${nc.color};background:${nc.bg};`;
+  document.getElementById('role-confirm-modal').style.display = 'flex';
+  const confirmed = await new Promise(r => { _roleModalResolve = r; });
+  if (!confirmed) { if (selectEl) selectEl.value = oldRole; return; }
+  showToast('⏳ Aggiornamento ruolo…');
+  try {
+    await adminFetch('PATCH', `profiles?id=eq.${userId}`, { role: newRole });
+    allUsers = allUsers.map(u => u.id===userId ? {...u, role:newRole} : u);
+    await loadData();
+    showToast('✅ Ruolo aggiornato → ' + rl[newRole]);
+  } catch(e) {
+    showToast('❌ ' + e.message);
+    if (selectEl) selectEl.value = oldRole;
+  }
+}
+function confirmRoleModal(v) {
+  document.getElementById('role-confirm-modal').style.display='none';
+  if(_roleModalResolve){_roleModalResolve(v);_roleModalResolve=null;}
+}
+
+function confirmDelete(v) { document.getElementById('delete-confirm-modal').style.display='none'; if(_deleteResolve){_deleteResolve(v);_deleteResolve=null;} }
+
+document.getElementById('edit-user-modal').addEventListener('click', function(e){ if(e.target===this)closeEditModal(); });
+
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+
+
+// EXPORT CSV (UTF-8 BOM — apre correttamente in Excel, Numbers, Google Sheets)
+function exportExcel() {
+  const headers = ['Nome e Cognome','Email','Organizzazione','P.IVA','Ruolo','Piano','Stato','Ultimo Accesso','IP','Registrato'];
+  const fmtDT = d => { if(!d) return ''; const dt=new Date(d); return dt.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+dt.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); };
+  const fmtD  = d => d ? new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}) : '';
+  const esc   = v => { const s=String(v??''); return (s.includes(',') || s.includes('"') || s.includes('\n')) ? `"${s.replace(/"/g,'""')}"` : s; };
+
+  const rows = allUsers.map(u => {
+    const isOnline = u.last_sign_in && (Date.now()-new Date(u.last_sign_in).getTime()) < 3*60*1000;
+    const orgAdmin = u.org_id ? allUsers.find(a => a.org_id===u.org_id && a.role==='admin' && a.id!==u.id) : null;
+    return [
+      u.full_name||'',
+      u.email||'',
+      orgName(u.org_id),
+      u.piva || orgAdmin?.piva || '',
+      u.role||'viewer',
+      u.plan||'starter',
+      isOnline ? 'Online' : 'Offline',
+      fmtDT(u.last_sign_in),
+      u.last_ip||'',
+      fmtD(u.created_at),
+    ].map(esc).join(',');
+  });
+
+  const csv = [headers.map(esc).join(','), ...rows].join('\r\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  const now  = new Date();
+  a.download = `canopy-utenti-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✅ Report esportato');
+}
+
+function startAutoRefresh() { setInterval(()=>{loadData();updateRefreshTimer();}, 30000); }
+let countdown=30;
+function updateRefreshTimer() { countdown=30; const el=document.getElementById('refresh-countdown'); if(el)el.textContent=countdown+'s'; }
+setInterval(()=>{ countdown--; if(countdown<0)countdown=30; const el=document.getElementById('refresh-countdown'); if(el)el.textContent=countdown+'s'; },1000);
+</script>
+
+<!-- Confirm Role Modal -->
+<div id="role-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(15,32,24,0.6);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:32px;width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.2);font-family:'Sora',sans-serif;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="width:36px;height:36px;background:#F0FDF4;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;">👤</div>
+      <div style="font-size:15px;font-weight:800;color:#0F2018;">Modifica ruolo</div>
+    </div>
+    <div style="font-size:13px;color:#6B7280;margin-bottom:6px;">Stai modificando il ruolo di:</div>
+    <div id="role-modal-email" style="font-size:13px;font-weight:700;color:#0F2018;margin-bottom:16px;"></div>
+    <div style="display:flex;align-items:center;gap:10px;background:#F9FBF9;border:1px solid #E2E8E4;border-radius:10px;padding:12px 16px;margin-bottom:24px;">
+      <span id="role-modal-old"></span>
+      <span style="color:#9CA3AF;font-size:14px;">→</span>
+      <span id="role-modal-new"></span>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="confirmRoleModal(false)" style="flex:1;padding:11px;background:transparent;border:1.5px solid #E2E8E4;border-radius:10px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;color:#6B7280;cursor:pointer;">Annulla</button>
+      <button onclick="confirmRoleModal(true)"  style="flex:1;padding:11px;background:linear-gradient(135deg,#0F2018,#1E4A30);border:none;border-radius:10px;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">✓ Conferma</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
